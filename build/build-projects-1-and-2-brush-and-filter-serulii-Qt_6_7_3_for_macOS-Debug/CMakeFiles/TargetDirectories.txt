@@ -1,0 +1,5 @@
+/Users/sherry/cs123/projects-1-and-2-brush-and-filter-serulii/build/build-projects-1-and-2-brush-and-filter-serulii-Qt_6_7_3_for_macOS-Debug/CMakeFiles/projects_raster.dir
+/Users/sherry/cs123/projects-1-and-2-brush-and-filter-serulii/build/build-projects-1-and-2-brush-and-filter-serulii-Qt_6_7_3_for_macOS-Debug/CMakeFiles/edit_cache.dir
+/Users/sherry/cs123/projects-1-and-2-brush-and-filter-serulii/build/build-projects-1-and-2-brush-and-filter-serulii-Qt_6_7_3_for_macOS-Debug/CMakeFiles/rebuild_cache.dir
+/Users/sherry/cs123/projects-1-and-2-brush-and-filter-serulii/build/build-projects-1-and-2-brush-and-filter-serulii-Qt_6_7_3_for_macOS-Debug/CMakeFiles/projects_raster_autogen_timestamp_deps.dir
+/Users/sherry/cs123/projects-1-and-2-brush-and-filter-serulii/build/build-projects-1-and-2-brush-and-filter-serulii-Qt_6_7_3_for_macOS-Debug/CMakeFiles/projects_raster_autogen.dir
