@@ -40,6 +40,7 @@ add_executable(${PROJECT_NAME}
   filtergray.h filtergray.cpp
   filterscale.cpp
   filterrotate.cpp
+  noisemaker.h noisemaker.cpp
 )
 
 # Specifies libraries to be linked (Qt components, glew, etc)

@@ -1,0 +1,17 @@
+# ninja log v5
+0	580	1744149730924755354	/Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/build/build-ColorMeNoisy-Qt_6_5_2_for_macOS-Debug/projects_raster_autogen/timestamp	50e3fcb2c435da3b
+580	2487	1744149732835539038	CMakeFiles/projects_raster.dir/projects_raster_autogen/mocs_compilation.cpp.o	d80f09710a07fd70
+0	580	1744149730924755354	/Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/build/build-ColorMeNoisy-Qt_6_5_2_for_macOS-Debug/projects_raster_autogen/mocs_compilation.cpp	50e3fcb2c435da3b
+581	2401	1744149732748207115	CMakeFiles/projects_raster.dir/filterblur.cpp.o	e9a360736a44627c
+580	2587	1744149732935074504	CMakeFiles/projects_raster.dir/mainwindow.cpp.o	5e6f9b70c07e508f
+0	580	1744149730924755354	projects_raster_autogen/mocs_compilation.cpp	50e3fcb2c435da3b
+0	580	1744149730924755354	projects_raster_autogen/timestamp	50e3fcb2c435da3b
+2706	2908	1744149733257339861	projects_raster	2f98a4f16a85e935
+581	2143	1744149732487975637	CMakeFiles/projects_raster.dir/settings.cpp.o	6283a288e7ef5081
+581	2286	1744149732630432481	CMakeFiles/projects_raster.dir/filtergray.cpp.o	1381f6e5d8dec6c3
+581	1473	1744149731821446879	CMakeFiles/projects_raster.dir/filterutils.cpp.o	6904c812d32fc775
+581	2379	1744149732725961697	CMakeFiles/projects_raster.dir/filteredgedetect.cpp.o	3bcd5e1d995055f4
+580	2421	1744149732763735949	CMakeFiles/projects_raster.dir/main.cpp.o	8331109eeac1ecc0
+581	2546	1744149732894127626	CMakeFiles/projects_raster.dir/canvas2d.cpp.o	3c1195ed285c1f7b
+582	2357	1744149732700160403	CMakeFiles/projects_raster.dir/filterscale.cpp.o	5cc0b5d69692b081
+1477	2706	1744149733055081179	CMakeFiles/projects_raster.dir/filterrotate.cpp.o	1e1d3e37dd7aad2c
