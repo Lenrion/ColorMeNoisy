@@ -6,6 +6,7 @@ class NoiseMaker
 {
 public:
     NoiseMaker();
+    void downSample(int filterRadius);
 };
 
 #endif // NOISEMAKER_H
