@@ -9,7 +9,7 @@ NoiseMaker::NoiseMaker()
 
 }
 
-RGBA bilinearInterpolation(float x, float y, const std::vector<RGBA>& img_data, int& img_width, int& img_height) {
+RGBA NoiseMaker::bilinearInterpolation(float x, float y, const std::vector<RGBA>& img_data, int& img_width, int& img_height) {
     RGBA output = {0, 0, 0, 255};
 
     int xFloor = static_cast<int>(std::floor(x));
