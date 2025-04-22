@@ -9,6 +9,62 @@ NoiseMaker::NoiseMaker()
 
 }
 
+RGBA bilinearInterpolation(float x, float y, const std::vector<RGBA>& img_data, int& img_width, int& img_height) {
+    RGBA output = {0, 0, 0, 255};
+
+    int xFloor = static_cast<int>(std::floor(x));
+    int yFloor = static_cast<int>(std::floor(y));
+    int xCeil  = std::min(xFloor + 1, img_width - 1);
+    int yCeil  = std::min(yFloor + 1, img_height - 1);
+
+    // checking image bounds
+    if (xFloor < 0 || xFloor >= img_width || yFloor < 0 || yFloor >= img_height) {
+        return output;
+    }
+
+    const RGBA &topLeft     = img_data[yFloor * img_width + xFloor];
+    const RGBA &topRight    = img_data[yFloor * img_width + xCeil];
+    const RGBA &bottomLeft  = img_data[yCeil  * img_width + xFloor];
+    const RGBA &bottomRight = img_data[yCeil  * img_width + xCeil];
+
+    float xFraction = x - xFloor;
+    float yFraction = y - yFloor;
+
+    float oneMinusX = 1.0f - xFraction;
+    float oneMinusY = 1.0f - yFraction;
+
+    // interpolating the color channels
+    float red =
+        topLeft.r * oneMinusX * oneMinusY +
+        topRight.r * xFraction * oneMinusY +
+        bottomLeft.r * oneMinusX * yFraction +
+        bottomRight.r * xFraction * yFraction;
+
+    float green =
+        topLeft.g * oneMinusX * oneMinusY +
+        topRight.g * xFraction * oneMinusY +
+        bottomLeft.g * oneMinusX * yFraction +
+        bottomRight.g * xFraction * yFraction;
+
+    float blue =
+        topLeft.b * oneMinusX * oneMinusY +
+        topRight.b * xFraction * oneMinusY +
+        bottomLeft.b * oneMinusX * yFraction +
+        bottomRight.b * xFraction * yFraction;
+
+    float alpha =
+        topLeft.a * oneMinusX * oneMinusY +
+        topRight.a * xFraction * oneMinusY +
+        bottomLeft.a * oneMinusX * yFraction +
+        bottomRight.a * xFraction * yFraction;
+
+    output.r = static_cast<uint8_t>(std::clamp(red,   0.0f, 255.0f));
+    output.g = static_cast<uint8_t>(std::clamp(green, 0.0f, 255.0f));
+    output.b = static_cast<uint8_t>(std::clamp(blue,  0.0f, 255.0f));
+    output.a = static_cast<uint8_t>(std::clamp(alpha, 0.0f, 255.0f));
+
+    return output;
+}
 
 void NoiseMaker::downSample(int filterRadius, int scale, std::vector<RGBA>& img_data, int& img_width, int& img_height) {
     scale = 2; // hardcoded to downsample to half size rn
