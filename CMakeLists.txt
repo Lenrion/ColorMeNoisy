@@ -17,6 +17,9 @@ find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS Gui)
 
+# Add Eigen to include path
+include_directories(eigen)
+
 # Specifies required Qt components
 add_definitions(-D_USE_MATH_DEFINES)
 add_definitions(-DTIXML_USE_STL)
