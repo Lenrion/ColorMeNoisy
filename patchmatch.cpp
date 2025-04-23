@@ -11,12 +11,12 @@ PatchMatch::PatchMatch() {
 
 }
 
-// Structure to represent a pixel
+// struct for pixels
 struct Pixel {
     unsigned char r, g, b;
 };
 
-// Function to calculate the squared distance between two patches
+// calculate the squared distance between two patches
 int patchDistance(const std::vector<Pixel>& patch1, const std::vector<Pixel>& patch2) {
     int distance = 0;
     for (size_t i = 0; i < patch1.size(); ++i) {
@@ -137,159 +137,63 @@ void patchmatch(const std::vector<Pixel>& imageA, const std::vector<Pixel>& imag
     }
 }
 
-// float PatchMatch::DistPatch(const Matrix2d & PatchA, const Matrix2d & PatchB, int PatchSize)
-// {
-//     return PatchSize * PatchSize * norm(PatchA, PatchB);
-// }
+// method to reconstruct an image given NNFs of best matches
+void reconstructImage(
+    const std::vector<Pixel>& imageB,
+    int width,
+    int height,
+    int patchSize,
+    const std::vector<std::pair<int, int>>& nnf,
+    std::vector<Pixel>& outputImage
+    ) {
+    outputImage.resize(width * height);
 
+    // Initialize output to black
+    for (auto& pixel : outputImage) {
+        pixel = {0, 0, 0};
+    }
 
-// void PatchMatch::GuessAndImprove(const Matrix2d & SourceImage, const Matrix2d & TargetImage, const Matrix2d & mask,
-//                      int x , int y, int Guees_x, int guess_y, int PatchSize, Matrix2d & NearestNeighbor)
-// {
-//     if (x == Guees_x && y == guess_y)
-//     {
-//         return;
-//     }
+    // To handle overlapping patches, we'll also track the count of how many times a pixel is written
+    std::vector<int> pixelCount(width * height, 0);
 
-//     Rect RE2(Guees_x, guess_y, PatchSize, PatchSize);
+    int nnfStride = width - patchSize + 1;
 
-//     Matrix2d CurMask = mask(RE2);
-//     int unValidNum = 0;
-//     for (int i = 0; i < CurMask.rows(); i++)
-//     {
-//         for (int j = 0; j < CurMask.cols(); j++)
-//         {
-//             if (CurMask(i, j))
-//             {
-//                 unValidNum++;
-//             }
-//         }
-//     }
+    for (int y = 0; y < height - patchSize + 1; ++y) {
+        for (int x = 0; x < width - patchSize + 1; ++x) {
+            int idx = y * nnfStride + x;
+            int matchX = nnf[idx].first;
+            int matchY = nnf[idx].second;
 
-//     if (unValidNum  * 10 > CurMask.rows() * CurMask.cols())
-//     {
-//         return;
-//     }
+            for (int dy = 0; dy < patchSize; ++dy) {
+                for (int dx = 0; dx < patchSize; ++dx) {
+                    int targetX = x + dx;
+                    int targetY = y + dy;
+                    int sourceX = matchX + dx;
+                    int sourceY = matchY + dy;
 
-//     Rect RE(x, y, PatchSize, PatchSize);
+                    if (targetX < width && targetY < height &&
+                        sourceX < width && sourceY < height) {
+                        int outputIdx = targetY * width + targetX;
+                        int sourceIdx = sourceY * width + sourceX;
 
-//     Matrix2d patchA = SourceImage(RE);
-//     Matrix2d patchB = TargetImage(RE2);
+                        // Accumulate pixel values
+                        outputImage[outputIdx].r += imageB[sourceIdx].r;
+                        outputImage[outputIdx].g += imageB[sourceIdx].g;
+                        outputImage[outputIdx].b += imageB[sourceIdx].b;
+                        pixelCount[outputIdx]++;
+                    }
+                }
+            }
+        }
+    }
 
-//     int CurDist = DistPatch(patchA, patchB, PatchSize);
+    // Average overlapping pixels
+    for (int i = 0; i < width * height; ++i) {
+        if (pixelCount[i] > 0) {
+            outputImage[i].r /= pixelCount[i];
+            outputImage[i].g /= pixelCount[i];
+            outputImage[i].b /= pixelCount[i];
+        }
+    }
+}
 
-//     int CurBestDist = NearestNeighbor(y, x)[2]; // TODO we want the best dist?
-
-//     if (CurDist < CurBestDist)
-//     {
-//         NearestNeighbor.at<Eigen::Vector3i>(y, x)[0] = Guees_x;
-//         NearestNeighbor.at<Eigen::Vector3i>(y, x)[1] = guess_y;
-//         NearestNeighbor.at<Eigen::Vector3i>(y, x)[2] = CurDist;
-//     }
-// }
-
-// void PatchMatch::PatchMatch(const Matrix2d & SourceImage,const Matrix2d & TargetImage, const Matrix2d & Mask,  int nPatchSize, Matrix2d & NearestNeighbor)
-// {
-//     // 最近邻数据
-//     NearestNeighbor = Matrix2d::zeros(SourceImage.size(), CV_32SC3);
-
-//     int nIterNum = 0;
-//     int nIterMaxNum = 5;
-//     int32_t nMaxCols = TargetImage.cols - nPatchSize - 1;
-//     int32_t nMaxRows = TargetImage.rows - nPatchSize - 1;
-
-//     // 先设置随机位置
-//     for (int i = 0; i < SourceImage.rows - nPatchSize; i++)
-//     {
-//         for (int j = 0; j < SourceImage.cols - nPatchSize; j++)
-//         {
-//             int nRandX = rand() % (nMaxCols);   // x 坐标
-//             int nRandY = rand() % (nMaxRows);   // y 坐标
-
-//             NearestNeighbor.at<Vec3i>(i, j)[0] = nRandX;
-//             NearestNeighbor.at<Vec3i>(i, j)[1] = nRandY;
-
-//             Rect RE(j, i, nPatchSize, nPatchSize);
-//             Mat patchA = SourceImage(RE);
-
-//             Rect RE2(nRandX, nRandY, nPatchSize, nPatchSize);
-//             Mat patchB = TargetImage(RE2);
-
-//             NearestNeighbor.at<Vec3i>(i,j)[2] = DistPatch(patchA, patchB, nPatchSize);
-
-//         }
-//     }
-
-//     while (nIterNum < nIterMaxNum)
-//     {
-//         int nColStart = 1;
-//         int nColEnd = SourceImage.cols - nPatchSize ;
-//         int nRowStart = 1;
-//         int nRowEnd = SourceImage.rows - nPatchSize ;
-//         int nStep = 1;
-
-//         if (nIterNum % 2)
-//         {
-//             nColStart = SourceImage.cols - nPatchSize - 2;
-//             nColEnd = -1;
-//             nRowStart = SourceImage.rows - nPatchSize - 2;
-//             nRowEnd = -1;
-//             nStep = -1;
-//         }
-
-
-//         for (int i = nRowStart; i != nRowEnd; i += nStep)
-//         {
-//             for (int j = nColStart; j != nColEnd; j += nStep)
-//             {
-//                 // 有效范围内
-//                 if (j - nStep < SourceImage.cols - nPatchSize)
-//                 {
-//                     int nGuessX = NearestNeighbor.at<Vec3i>(i, j - nStep)[0] + nStep;
-//                     int nGuessY = NearestNeighbor.at<Vec3i>(i, j - nStep)[1];
-
-//                     if (nGuessX < TargetImage.cols - nPatchSize && nGuessX >= 0)
-//                     {
-//                         // propagation
-//                         GuessAndImprove(SourceImage, TargetImage, Mask, j, i, nGuessX, nGuessY, nPatchSize, NearestNeighbor);
-//                     }
-
-//                 }
-//                 // 有效范围内
-//                 if (i - nStep < SourceImage.rows - nPatchSize)
-//                 {
-//                     int nGuessX = NearestNeighbor.at<Vec3i>(i - nStep, j)[0];
-//                     int nGuessY = NearestNeighbor.at<Vec3i>(i - nStep, j)[1] + nStep;
-
-//                     if (nGuessY < TargetImage.rows - nPatchSize && nGuessY >= 0)
-//                     {
-//                         // propagation
-//                         GuessAndImprove(SourceImage, TargetImage, Mask, j, i, nGuessX, nGuessY, nPatchSize, NearestNeighbor);
-//                     }
-//                 }
-
-//                 // random guess
-
-//                 int rs_start = max(TargetImage.rows,  TargetImage.cols);
-
-//                 int nBestX = NearestNeighbor.at<Vec3i>(i, j)[0];
-//                 int nBestY = NearestNeighbor.at<Vec3i>(i, j)[1];
-
-//                 for (int mag = rs_start; mag >= 1; mag /= 2)
-//                 {
-//                     /* Sampling window */
-//                     int xmin = max(nBestX - mag, 0), xmax = min(nBestX + mag + 1, TargetImage.cols - nPatchSize - 1);
-//                     int ymin = max(nBestY - mag, 0), ymax = min(nBestY + mag + 1, TargetImage.rows - nPatchSize - 1);
-
-//                     int xp = xmin + rand() % (xmax - xmin);
-//                     int yp = ymin + rand() % (ymax - ymin);
-
-//                     GuessAndImprove(SourceImage, TargetImage, Mask, j, i, xp, yp,  nPatchSize, NearestNeighbor);
-
-//                 }
-//             }
-//         }
-
-//         nIterNum++;
-//     }
-// }
