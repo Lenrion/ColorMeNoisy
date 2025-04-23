@@ -9,7 +9,7 @@ class NoiseMaker
 public:
     NoiseMaker();
     void downSample(int filterRadius, int scale, std::vector<RGBA>& img_data, int& img_width, int& img_height);
-    RGBA bilinearInterpolation(float x, float y, const std::vector<RGBA> &input, int width, int height);
+    RGBA bilinearInterpolation(float x, float y, const std::vector<RGBA> &input, int& width, int& height);
     std::vector<std::vector<RGBA>> texturePyramid;
     std::vector<std::pair<int, int>> texturePyramidDims;
 
