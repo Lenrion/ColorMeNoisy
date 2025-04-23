@@ -5,19 +5,16 @@
 #include <random>
 #include <cmath>
 #include <Eigen/Dense>
+#include <RGBA.h>
 using namespace Eigen;
 
 PatchMatch::PatchMatch() {
 
 }
 
-// struct for pixels
-struct Pixel {
-    unsigned char r, g, b;
-};
 
 // calculate the squared distance between two patches
-int patchDistance(const std::vector<Pixel>& patch1, const std::vector<Pixel>& patch2) {
+int patchDistance(const std::vector<RGBA>& patch1, const std::vector<RGBA>& patch2) {
     int distance = 0;
     for (size_t i = 0; i < patch1.size(); ++i) {
         distance += (patch1[i].r - patch2[i].r) * (patch1[i].r - patch2[i].r);
@@ -27,8 +24,8 @@ int patchDistance(const std::vector<Pixel>& patch1, const std::vector<Pixel>& pa
     return distance;
 }
 
-std::vector<Pixel> extractPatch(const std::vector<Pixel>& image, int x, int y, int width, int patchSize) {
-    std::vector<Pixel> patch;
+std::vector<RGBA> extractPatch(const std::vector<RGBA>& image, int x, int y, int width, int patchSize) {
+    std::vector<RGBA> patch;
     for (int dy = 0; dy < patchSize; ++dy) {
         patch.insert(patch.end(), image.begin() + (y + dy) * width + x, image.begin() + (y + dy) * width + x + patchSize);
     }
@@ -36,7 +33,7 @@ std::vector<Pixel> extractPatch(const std::vector<Pixel>& image, int x, int y, i
 }
 
 
-void patchmatch(const std::vector<Pixel>& imageA, const std::vector<Pixel>& imageB, int width, int height, int patchSize, std::vector<std::pair<int, int>>& nnf) {
+void patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB, int width, int height, int patchSize, std::vector<std::pair<int, int>>& nnf) {
     // Initialize the NNF randomly
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -80,8 +77,8 @@ void patchmatch(const std::vector<Pixel>& imageA, const std::vector<Pixel>& imag
 
                     if (newMatchX >= 0 && newMatchX <= width - patchSize) {
                         int newDistance = patchDistance(
-                            std::vector<Pixel>(imageA.begin() + y * width + x, imageA.begin() + y * width + x + patchSize * width + patchSize),
-                            std::vector<Pixel>(imageB.begin() + newMatchY * width + newMatchX, imageB.begin() + newMatchY * width + newMatchX + patchSize * width + patchSize)
+                            std::vector<RGBA>(imageA.begin() + y * width + x, imageA.begin() + y * width + x + patchSize * width + patchSize),
+                            std::vector<RGBA>(imageB.begin() + newMatchY * width + newMatchX, imageB.begin() + newMatchY * width + newMatchX + patchSize * width + patchSize)
                             );
                         if (newDistance < bestDistance) {
                             bestDistance = newDistance;
@@ -97,8 +94,8 @@ void patchmatch(const std::vector<Pixel>& imageA, const std::vector<Pixel>& imag
 
                     if (newMatchY >= 0 && newMatchY <= height - patchSize) {
                         int newDistance = patchDistance(
-                            std::vector<Pixel>(imageA.begin() + y * width + x, imageA.begin() + y * width + x + patchSize * width + patchSize),
-                            std::vector<Pixel>(imageB.begin() + newMatchY * width + newMatchX, imageB.begin() + newMatchY * width + newMatchX + patchSize * width + patchSize)
+                            std::vector<RGBA>(imageA.begin() + y * width + x, imageA.begin() + y * width + x + patchSize * width + patchSize),
+                            std::vector<RGBA>(imageB.begin() + newMatchY * width + newMatchX, imageB.begin() + newMatchY * width + newMatchX + patchSize * width + patchSize)
                             );
                         if (newDistance < bestDistance) {
                             bestDistance = newDistance;
@@ -119,8 +116,8 @@ void patchmatch(const std::vector<Pixel>& imageA, const std::vector<Pixel>& imag
 
                     if (newMatchX >= 0 && newMatchX <= width - patchSize && newMatchY >= 0 && newMatchY <= height - patchSize) {
                         int newDistance = patchDistance(
-                            std::vector<Pixel>(imageA.begin() + y * width + x, imageA.begin() + y * width + x + patchSize * width + patchSize),
-                            std::vector<Pixel>(imageB.begin() + newMatchY * width + newMatchX, imageB.begin() + newMatchY * width + newMatchX + patchSize * width + patchSize)
+                            std::vector<RGBA>(imageA.begin() + y * width + x, imageA.begin() + y * width + x + patchSize * width + patchSize),
+                            std::vector<RGBA>(imageB.begin() + newMatchY * width + newMatchX, imageB.begin() + newMatchY * width + newMatchX + patchSize * width + patchSize)
                             );
                         if (newDistance < bestDistance) {
                             bestDistance = newDistance;
@@ -139,12 +136,12 @@ void patchmatch(const std::vector<Pixel>& imageA, const std::vector<Pixel>& imag
 
 // method to reconstruct an image given NNFs of best matches
 void reconstructImage(
-    const std::vector<Pixel>& imageB,
+    const std::vector<RGBA>& imageB,
     int width,
     int height,
     int patchSize,
     const std::vector<std::pair<int, int>>& nnf,
-    std::vector<Pixel>& outputImage
+    std::vector<RGBA>& outputImage
     ) {
     outputImage.resize(width * height);
 
