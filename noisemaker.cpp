@@ -9,6 +9,20 @@ NoiseMaker::NoiseMaker()
 
 }
 
+
+void NoiseMaker::colorMeNoisy(
+    const std::vector<RGBA>& textureImage, int textureWidth, int textureHeight,
+    const std::vector<RGBA>& originalFrame, int frameWidth, int frameHeight,
+    std::vector<RGBA>& outputImage, int numIterations, int pyramidLevels) {
+
+    // creates texturePyramid and texturePyramidDims, downsizes output frame to the smallest level to get ready for main loop of scaling up
+    createImagePyramids(textureImage, textureWidth, textureHeight,
+                        originalFrame, frameWidth, frameHeight, pyramidLevels);
+
+}
+
+
+
 RGBA NoiseMaker::bilinearInterpolation(float x, float y, const std::vector<RGBA>& img_data, int& img_width, int& img_height) {
     RGBA output = {0, 0, 0, 255};
 
