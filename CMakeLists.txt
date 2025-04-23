@@ -18,7 +18,10 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS Gui)
 
 # Add Eigen to include path
+#include_directories(${CMAKE_SOURCE_DIR})
 include_directories(eigen)
+
+
 
 # Specifies required Qt components
 add_definitions(-D_USE_MATH_DEFINES)
@@ -27,7 +30,6 @@ add_definitions(-DTIXML_USE_STL)
 # Specifies .cpp and .h files to be passed to the compiler
 add_executable(${PROJECT_NAME}
   main.cpp
-
   mainwindow.cpp
   settings.cpp
   canvas2d.cpp
@@ -45,6 +47,7 @@ add_executable(${PROJECT_NAME}
   filterrotate.cpp
   noisemaker.h noisemaker.cpp
   patchmatch.h patchmatch.cpp
+
 )
 
 # Specifies libraries to be linked (Qt components, glew, etc)
