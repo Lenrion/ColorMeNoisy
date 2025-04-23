@@ -23,6 +23,11 @@ public:
         const std::vector<RGBA>& textureImage, int textureWidth, int textureHeight,
         const std::vector<RGBA>& animationFrame, int frameWidth, int frameHeight,
         int pyramidLevels);
+
+    void colorMeNoisy(
+        const std::vector<RGBA>& textureImage, int textureWidth, int textureHeight,
+        const std::vector<RGBA>& originalFrame, int frameWidth, int frameHeight,
+        std::vector<RGBA>& outputImage, int numIterations, int pyramidLevels);
 };
 
 #endif // NOISEMAKER_H
