@@ -1,5 +1,0 @@
-/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/build/build-ColorMeNoisy-Qt_6_5_2_for_macOS-Debug/CMakeFiles/projects_raster.dir
-/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/build/build-ColorMeNoisy-Qt_6_5_2_for_macOS-Debug/CMakeFiles/edit_cache.dir
-/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/build/build-ColorMeNoisy-Qt_6_5_2_for_macOS-Debug/CMakeFiles/rebuild_cache.dir
-/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/build/build-ColorMeNoisy-Qt_6_5_2_for_macOS-Debug/CMakeFiles/projects_raster_autogen_timestamp_deps.dir
-/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/build/build-ColorMeNoisy-Qt_6_5_2_for_macOS-Debug/CMakeFiles/projects_raster_autogen.dir

@@ -66,6 +66,23 @@ RGBA NoiseMaker::bilinearInterpolation(float x, float y, const std::vector<RGBA>
     return output;
 }
 
+void NoiseMaker::upsample(const std::vector<RGBA>& coarseLevel, int coarseWidth, int coarseHeight, std::vector<RGBA>& fineLevel, int fineWidth, int fineHeight) {
+    fineLevel.resize(fineWidth * fineHeight);
+
+    float scaleX = static_cast<float>(coarseWidth) / fineWidth;
+    float scaleY = static_cast<float>(coarseHeight) / fineHeight;
+
+    for (int y = 0; y < fineHeight; y++) {
+        for (int x = 0; x < fineWidth; x++) {
+            float srcX = x * scaleX;
+            float srcY = y * scaleY;
+
+            RGBA value = bilinearInterpolation(srcX, srcY, coarseLevel, coarseWidth, coarseHeight);
+            fineLevel[y * fineWidth + x] = value;
+        }
+    }
+}
+
 void NoiseMaker::downSample(int filterRadius, int scale, std::vector<RGBA>& img_data, int& img_width, int& img_height) {
     scale = 2; // hardcoded to downsample to half size rn
     int kernelSize = 2 * filterRadius + 1;
