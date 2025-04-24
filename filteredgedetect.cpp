@@ -6,7 +6,7 @@ void Canvas2D::filterEdgeDetect(float sensitivity) {
     filterGray();
 
 //    // sobel filters (separated)
-//    std::vector<float> kernelXVertical = {
+//    std::vector<float> kernelXVertical = {/
 //        1.0f, 2.0f, 1.0f
 //    };
 //    std::vector<float> kernelXHorizontal = {

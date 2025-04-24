@@ -79,17 +79,7 @@ void Canvas2D::filterGray() {
             };
         }
     }
-//    for (int y = 0; y < targetQImage.height(); ++y) {
-//        for (int x = 0; x < targetQImage.width(); ++x) {
-//            QRgb targetPixel = targetQImage.pixel(x, y);
-//            targetImage[y * targetQImage.width() + x] = {
-//                255,
-//                0,
-//                0,
-//                static_cast<uint8_t>(qAlpha(targetPixel))  // Preserve original alpha
-//            };
-//        }
-//    }
+
 
     std::cout << "Sample source pixel (0,0): R=" << (int)sourceImage[0].r
               << " G=" << (int)sourceImage[0].g
@@ -100,7 +90,7 @@ void Canvas2D::filterGray() {
 
     int patchSize = 5;
 
-    // Initialize the nearest neighbor field - now maps from SOURCE patches to TARGET
+    // to store nearest neighbor field - maps from SOURCE patches to TARGET
     std::vector<std::pair<int, int>> nnf((width - patchSize + 1) * (height - patchSize + 1));
 
     std::cout << "Running PatchMatch algorithm..." << std::endl;
@@ -115,11 +105,10 @@ void Canvas2D::filterGray() {
 
     // Reconstruct an image based on the NNF
     std::vector<RGBA> resultImage;
-    // Pass sourceImage as the first parameter to keep content structure,
     // but use style from targetImage via the NNF
     reconstructImage(sourceImage, targetImage, width, height, patchSize, nnf, resultImage);
 
-    // Update canvas with the result
+    // Update canvas
     resize(width, height);
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
@@ -133,7 +122,6 @@ void Canvas2D::filterGray() {
         }
     }
 
-    // Display result
     update();
     std::cout << "PatchMatch test completed. Result displayed on canvas." << std::endl;
 }
@@ -149,7 +137,7 @@ void Canvas2D::reconstructImage(
 {
     outputImage.resize(width * height);
 
-    // For each pixel, we'll track color frequencies
+    // unique ID per color to check frqs
     struct ColorHash {
         size_t operator()(const RGBA& c) const {
             return (c.r << 16) | (c.g << 8) | c.b;
@@ -165,7 +153,7 @@ void Canvas2D::reconstructImage(
 
     int nnfWidth = width - patchSize + 1;
 
-    // First pass: count color frequencies
+    // count color frequencies
     for (int y = 0; y < height - patchSize + 1; ++y) {
         for (int x = 0; x < width - patchSize + 1; ++x) {
             int srcPatchIdx = y * nnfWidth + x;
@@ -193,7 +181,7 @@ void Canvas2D::reconstructImage(
         }
     }
 
-    // Second pass: find mode for each pixel
+    //  mode for each pixel
     for (int i = 0; i < width * height; ++i) {
         if (!pixelColors[i].empty()) {
             // Find color with maximum count
@@ -206,7 +194,7 @@ void Canvas2D::reconstructImage(
                 );
             outputImage[i] = mode->first;
         } else {
-            // Fallback to source image if no patches contributed
+            // if no patches contributed
             outputImage[i] = sourceImage[i];
         }
     }
