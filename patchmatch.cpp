@@ -6,11 +6,12 @@
 #include <cmath>
 #include <Eigen/Dense>
 #include <RGBA.h>
+#include "canvas2d.h"
 using namespace Eigen;
 
-PatchMatch::PatchMatch() {
+//PatchMatch::PatchMatch() {
 
-}
+//}
 
 
 // calculate the squared distance between two patches
@@ -33,163 +34,97 @@ std::vector<RGBA> extractPatch(const std::vector<RGBA>& image, int x, int y, int
 }
 
 
-void patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB, int width, int height, int patchSize, std::vector<std::pair<int, int>>& nnf) {
-    // Initialize the NNF randomly
+void Canvas2D::patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB,
+                          int width, int height, int patchSize,
+                          std::vector<std::pair<int, int>>& nnf) {
+    // Initialize random number generator
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distribX(0, width - patchSize);
     std::uniform_int_distribution<> distribY(0, height - patchSize);
 
+    // 1. Initialize NNF randomly
     for (int y = 0; y < height - patchSize + 1; ++y) {
         for (int x = 0; x < width - patchSize + 1; ++x) {
-            nnf[y * (width - patchSize + 1) + x] = std::make_pair(distribX(gen), distribY(gen));
+            nnf[y * (width - patchSize + 1) + x] = {distribX(gen), distribY(gen)};
         }
     }
 
-    // Iterate and refine the NNF
-    int iterations = 5;
+    // 2. Iterate and refine
+    const int iterations = 5;  // Increased from 1
     for (int iter = 0; iter < iterations; ++iter) {
-        // Alternate the order of propagation
-        int yStart = (iter % 2 == 0) ? 0 : height - patchSize;
-        int yEnd = (iter % 2 == 0) ? height - patchSize : 0;
-        int yStep = (iter % 2 == 0) ? 1 : -1;
+        bool reverse = (iter % 2 == 1);
 
-        int xStart = (iter % 2 == 0) ? 0 : width - patchSize;
-        int xEnd = (iter % 2 == 0) ? width - patchSize : 0;
-        int xStep = (iter % 2 == 0) ? 1 : -1;
+        for (int y = reverse ? height-patchSize : 0;
+             reverse ? y >= 0 : y < height-patchSize+1;
+             reverse ? y-- : y++) {
 
-        for (int y = yStart; y != yEnd; y += yStep) {
-            for (int x = xStart; x != xEnd; x += xStep) {
-                // Current best match
-                int bestMatchX = nnf[y * (width - patchSize + 1) + x].first;
-                int bestMatchY = nnf[y * (width - patchSize + 1) + x].second;
-                int bestDistance = patchDistance(
+            for (int x = reverse ? width-patchSize : 0;
+                 reverse ? x >= 0 : x < width-patchSize+1;
+                 reverse ? x-- : x++) {
+
+                auto& best_match = nnf[y * (width-patchSize+1) + x];
+                int best_dist = patchDistance(
                     extractPatch(imageA, x, y, width, patchSize),
-                    extractPatch(imageB, bestMatchX, bestMatchY, width, patchSize)
-                    // std::vector<Pixel>(imageA.begin() + y * width + x, imageA.begin() + y * width + x + patchSize * width + patchSize),
-                    // std::vector<Pixel>(imageB.begin() + bestMatchY * width + bestMatchX, imageB.begin() + bestMatchY * width + bestMatchX + patchSize * width + patchSize)
+                    extractPatch(imageB, best_match.first, best_match.second, width, patchSize)
                     );
 
-                // Propagation
-                if (x - xStep >= 0 && x - xStep <= width - patchSize) {
-                    int newMatchX = nnf[y * (width - patchSize + 1) + (x - xStep)].first + xStep;
-                    int newMatchY = nnf[y * (width - patchSize + 1) + (x - xStep)].second;
-
-                    if (newMatchX >= 0 && newMatchX <= width - patchSize) {
-                        int newDistance = patchDistance(
-                            std::vector<RGBA>(imageA.begin() + y * width + x, imageA.begin() + y * width + x + patchSize * width + patchSize),
-                            std::vector<RGBA>(imageB.begin() + newMatchY * width + newMatchX, imageB.begin() + newMatchY * width + newMatchX + patchSize * width + patchSize)
+                // Propagation - use neighbor's match directly
+                if (x > 0 && !reverse) {
+                    const auto& left_match = nnf[y * (width-patchSize+1) + (x-1)];
+                    if (left_match.first < width-patchSize) {
+                        int dist = patchDistance(
+                            extractPatch(imageA, x, y, width, patchSize),
+                            extractPatch(imageB, left_match.first, left_match.second, width, patchSize)
                             );
-                        if (newDistance < bestDistance) {
-                            bestDistance = newDistance;
-                            bestMatchX = newMatchX;
-                            bestMatchY = newMatchY;
+                        if (dist < best_dist) {
+                            best_match = left_match;
+                            best_dist = dist;
                         }
                     }
                 }
 
-                if (y - yStep >= 0 && y - yStep <= height - patchSize) {
-                    int newMatchX = nnf[(y - yStep) * (width - patchSize + 1) + x].first;
-                    int newMatchY = nnf[(y - yStep) * (width - patchSize + 1) + x].second + yStep;
-
-                    if (newMatchY >= 0 && newMatchY <= height - patchSize) {
-                        int newDistance = patchDistance(
-                            std::vector<RGBA>(imageA.begin() + y * width + x, imageA.begin() + y * width + x + patchSize * width + patchSize),
-                            std::vector<RGBA>(imageB.begin() + newMatchY * width + newMatchX, imageB.begin() + newMatchY * width + newMatchX + patchSize * width + patchSize)
+                if (y > 0 && !reverse) {
+                    const auto& top_match = nnf[(y-1) * (width-patchSize+1) + x];
+                    if (top_match.second < height-patchSize) {
+                        int dist = patchDistance(
+                            extractPatch(imageA, x, y, width, patchSize),
+                            extractPatch(imageB, top_match.first, top_match.second, width, patchSize)
                             );
-                        if (newDistance < bestDistance) {
-                            bestDistance = newDistance;
-                            bestMatchX = newMatchX;
-                            bestMatchY = newMatchY;
+                        if (dist < best_dist) {
+                            best_match = top_match;
+                            best_dist = dist;
                         }
                     }
                 }
 
-                // Random search
-                int searchRadius = std::max(width, height);
-                while (searchRadius > 1) {
-                    std::uniform_int_distribution<> distribSearchX(-searchRadius, searchRadius);
-                    std::uniform_int_distribution<> distribSearchY(-searchRadius, searchRadius);
+                // Random search with exponentially decreasing window
+                int search_radius = std::max(width, height)/2;
+                while (search_radius >= 1) {
+                    int min_x = std::max(0, best_match.first - search_radius);
+                    int max_x = std::min(width-patchSize, best_match.first + search_radius);
+                    int min_y = std::max(0, best_match.second - search_radius);
+                    int max_y = std::min(height-patchSize, best_match.second + search_radius);
 
-                    int newMatchX = bestMatchX + distribSearchX(gen);
-                    int newMatchY = bestMatchY + distribSearchY(gen);
+                    std::uniform_int_distribution<> distribX(min_x, max_x);
+                    std::uniform_int_distribution<> distribY(min_y, max_y);
 
-                    if (newMatchX >= 0 && newMatchX <= width - patchSize && newMatchY >= 0 && newMatchY <= height - patchSize) {
-                        int newDistance = patchDistance(
-                            std::vector<RGBA>(imageA.begin() + y * width + x, imageA.begin() + y * width + x + patchSize * width + patchSize),
-                            std::vector<RGBA>(imageB.begin() + newMatchY * width + newMatchX, imageB.begin() + newMatchY * width + newMatchX + patchSize * width + patchSize)
-                            );
-                        if (newDistance < bestDistance) {
-                            bestDistance = newDistance;
-                            bestMatchX = newMatchX;
-                            bestMatchY = newMatchY;
-                        }
+                    int rx = distribX(gen);
+                    int ry = distribY(gen);
+
+                    int dist = patchDistance(
+                        extractPatch(imageA, x, y, width, patchSize),
+                        extractPatch(imageB, rx, ry, width, patchSize)
+                        );
+
+                    if (dist < best_dist) {
+                        best_match = {rx, ry};
+                        best_dist = dist;
                     }
-                    searchRadius /= 2;
-                }
-                nnf[y * (width - patchSize + 1) + x].first = bestMatchX;
-                nnf[y * (width - patchSize + 1) + x].second = bestMatchY;
-            }
-        }
-    }
-}
 
-// method to reconstruct an image given NNFs of best matches
-void reconstructImage(
-    const std::vector<RGBA>& imageB,
-    int width,
-    int height,
-    int patchSize,
-    const std::vector<std::pair<int, int>>& nnf,
-    std::vector<RGBA>& outputImage
-    ) {
-    outputImage.resize(width * height);
-
-    // Initialize output to black
-    for (auto& pixel : outputImage) {
-        pixel = {0, 0, 0};
-    }
-
-    // To handle overlapping patches, we'll also track the count of how many times a pixel is written
-    std::vector<int> pixelCount(width * height, 0);
-
-    int nnfStride = width - patchSize + 1;
-
-    for (int y = 0; y < height - patchSize + 1; ++y) {
-        for (int x = 0; x < width - patchSize + 1; ++x) {
-            int idx = y * nnfStride + x;
-            int matchX = nnf[idx].first;
-            int matchY = nnf[idx].second;
-
-            for (int dy = 0; dy < patchSize; ++dy) {
-                for (int dx = 0; dx < patchSize; ++dx) {
-                    int targetX = x + dx;
-                    int targetY = y + dy;
-                    int sourceX = matchX + dx;
-                    int sourceY = matchY + dy;
-
-                    if (targetX < width && targetY < height &&
-                        sourceX < width && sourceY < height) {
-                        int outputIdx = targetY * width + targetX;
-                        int sourceIdx = sourceY * width + sourceX;
-
-                        // Accumulate pixel values
-                        outputImage[outputIdx].r += imageB[sourceIdx].r;
-                        outputImage[outputIdx].g += imageB[sourceIdx].g;
-                        outputImage[outputIdx].b += imageB[sourceIdx].b;
-                        pixelCount[outputIdx]++;
-                    }
+                    search_radius /= 2;
                 }
             }
-        }
-    }
-
-    // Average overlapping pixels
-    for (int i = 0; i < width * height; ++i) {
-        if (pixelCount[i] > 0) {
-            outputImage[i].r /= pixelCount[i];
-            outputImage[i].g /= pixelCount[i];
-            outputImage[i].b /= pixelCount[i];
         }
     }
 }

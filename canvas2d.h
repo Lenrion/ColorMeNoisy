@@ -31,8 +31,15 @@ public:
     void filterGray();
     void filterScale(float scaleX, float scaleY);
     void filterRotate(float angle);
-
-private:
+    void patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB, int width, int height, int patchSize, std::vector<std::pair<int, int>>& nnf);
+    void reconstructImage(
+        const std::vector<RGBA>& sourceImage,     // Source image (content)
+        const std::vector<RGBA>& targetImage,     // Target image (style)
+        int width, int height,                    // Source dimensions
+        int patchSize,                            // Patch size
+        const std::vector<std::pair<int, int>>& nnf, // NNF from source to target
+        std::vector<RGBA>& outputImage            // Output image
+        );
     std::vector<RGBA> m_data;
 
     void mouseDown(int x, int y);

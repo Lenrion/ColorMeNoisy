@@ -10,7 +10,7 @@ NoiseMaker::NoiseMaker()
 }
 
 
-void NoiseMaker::colorMeNoisy(
+void NoiseMaker::processImagePyramids(
     const std::vector<RGBA>& textureImage, int textureWidth, int textureHeight,
     const std::vector<RGBA>& originalFrame, int frameWidth, int frameHeight,
     std::vector<RGBA>& outputImage, int numIterations, int pyramidLevels) {
@@ -19,6 +19,43 @@ void NoiseMaker::colorMeNoisy(
     createImagePyramids(textureImage, textureWidth, textureHeight,
                         originalFrame, frameWidth, frameHeight, pyramidLevels);
 
+    std::vector<RGBA> currentResult = currentTargetFrame;
+    int currentWidth = currentTargetWidth;
+    int currentHeight = currentTargetHeight;
+
+    // coarsest to finest --bottom-up through the pyramid levels
+    for (int level = pyramidLevels - 1; level >= 0; level--) {
+
+        // texture at current level
+        const std::vector<RGBA>& currLevelTexture = texturePyramid[level];
+        int currTexWidth = texturePyramidDims[level].first;
+        int currTexHeight = texturePyramidDims[level].second;
+
+        //         updample our current result image to match current texture pyramid level
+        //if not at highest level
+        int newWidth = currentWidth * 2; //Hardcoded to 2x because im pretty sure thats what the downsample method does rn
+        //idk check and change this
+        int newHeight = currentHeight * 2;
+        //        upsample(...)
+        //         currentwidth = newWidth , newheight etc
+        //            std::vector<RGBA> deformedTarget = predeform()
+
+
+        std::vector<RGBA> levelResult(currentWidth * currentHeight);
+        // for each pixel
+        //do patchmatch on the predeformed target, get result, and do the mode thing
+
+        currentResult = levelResult;
+
+        //    }
+        outputImage = levelResult;
+        // should make a function that autosaves the output images on a sequence of inputs
+
+
+
+
+
+    }
 }
 
 RGBA NoiseMaker::bilinearInterpolation(float x, float y, const std::vector<RGBA>& img_data, int& img_width, int& img_height) {
