@@ -4,6 +4,8 @@
 
 #include "rgba.h"
 #include <vector>
+#include <Eigen/Dense>
+
 class NoiseMaker
 {
 public:
@@ -18,6 +20,15 @@ public:
     std::vector<RGBA> currentTargetFrame;
     int currentTargetWidth;
     int currentTargetHeight;
+
+    std::vector<RGBA> predeform(
+        const std::vector<RGBA>& currentFrame, int currentWidth, int currentHeight,
+        const std::vector<RGBA>& previousResult, int previousWidth, int previousHeight,
+        const std::vector<Eigen::Vector2f>& motionVectors);
+
+    std::vector<Eigen::Vector2f> estimateMotion(
+        const std::vector<RGBA>& currentFrame, int currentWidth, int currentHeight,
+        const std::vector<RGBA>& previousFrame, int previousWidth, int previousHeight);
 
     void createImagePyramids(
         const std::vector<RGBA>& textureImage, int textureWidth, int textureHeight,
