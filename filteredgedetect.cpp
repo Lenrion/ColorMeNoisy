@@ -3,7 +3,11 @@
 #include "iostream"
 
 void Canvas2D::filterEdgeDetect(float sensitivity) {
-    filterGray();
+    // filterGray();
+
+    // filterUpsampleTest();
+    // filterDownsampleTest();
+    // filterPyramidResampleTest();
 
 //    // sobel filters (separated)
 //    std::vector<float> kernelXVertical = {/

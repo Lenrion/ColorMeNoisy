@@ -28,6 +28,7 @@
 #include "canvas2d.h"
 #include "filterutils.h"
 #include "patchmatch.h"
+#include "noisemaker.h"
 #include <QImage>
 #include <QString>
 #include <iostream>
@@ -126,6 +127,147 @@ void Canvas2D::filterGray() {
     std::cout << "PatchMatch test completed. Result displayed on canvas." << std::endl;
 }
 
+void Canvas2D::filterDownsampleTest() {
+    QString sourceImagePath = "/Users/vivli/Downloads/test.jpeg";
+    QImage sourceQImage(sourceImagePath);
+
+    if (sourceQImage.isNull()) {
+        std::cerr << "Failed to load image" << std::endl;
+        return;
+    }
+
+    int origWidth = sourceQImage.width();
+    int origHeight = sourceQImage.height();
+    std::vector<RGBA> originalImage(origWidth * origHeight);
+
+    for (int y = 0; y < origHeight; ++y) {
+        for (int x = 0; x < origWidth; ++x) {
+            QRgb pixel = sourceQImage.pixel(x, y);
+            originalImage[y * origWidth + x] = {
+                static_cast<uint8_t>(qRed(pixel)),
+                static_cast<uint8_t>(qGreen(pixel)),
+                static_cast<uint8_t>(qBlue(pixel)),
+                static_cast<uint8_t>(qAlpha(pixel))
+            };
+        }
+    }
+
+    std::vector<RGBA> downsampled = originalImage;
+    int dsWidth = origWidth;
+    int dsHeight = origHeight;
+    NoiseMaker testMaker;
+    testMaker.downSample(1, 2, downsampled, dsWidth, dsHeight);  // 2x downsampling
+
+    // stretching the downsampled image to fit original canvas size for viewing purposes
+    resize(origWidth, origHeight);
+    for (int y = 0; y < origHeight; ++y) {
+        for (int x = 0; x < origWidth; ++x) {
+            int srcX = x / 2;
+            int srcY = y / 2;
+            int srcIdx = std::min(srcY, dsHeight - 1) * dsWidth + std::min(srcX, dsWidth - 1);
+            m_data[y * origWidth + x] = downsampled[srcIdx];
+        }
+    }
+
+    update();
+    std::cout << "Displayed downsampled image (stretched for view)." << std::endl;
+}
+
+void Canvas2D::filterUpsampleTest() {
+    QString sourceImagePath = "/Users/vivli/Downloads/downsample1.png";
+    QImage sourceQImage(sourceImagePath);
+
+    if (sourceQImage.isNull()) {
+        std::cerr << "Failed to load image" << std::endl;
+        return;
+    }
+
+    int smallWidth = sourceQImage.width();
+    int smallHeight = sourceQImage.height();
+    std::vector<RGBA> smallImage(smallWidth * smallHeight);
+
+    for (int y = 0; y < smallHeight; ++y) {
+        for (int x = 0; x < smallWidth; ++x) {
+            QRgb pixel = sourceQImage.pixel(x, y);
+            smallImage[y * smallWidth + x] = {
+                static_cast<uint8_t>(qRed(pixel)),
+                static_cast<uint8_t>(qGreen(pixel)),
+                static_cast<uint8_t>(qBlue(pixel)),
+                static_cast<uint8_t>(qAlpha(pixel))
+            };
+        }
+    }
+
+    int upWidth = smallWidth * 2;
+    int upHeight = smallHeight * 2;
+    std::vector<RGBA> upsampled;
+
+    NoiseMaker testMaker;
+    testMaker.upsample(smallImage, smallWidth, smallHeight, upsampled, upWidth, upHeight);
+
+    resize(upWidth, upHeight);
+    for (int y = 0; y < upHeight; ++y) {
+        for (int x = 0; x < upWidth; ++x) {
+            int idx = y * upWidth + x;
+            m_data[idx] = upsampled[idx];
+        }
+    }
+
+    update();
+    std::cout << "Displayed result of upsampling " << smallWidth << "x" << smallHeight
+              << " image to " << upWidth << "x" << upHeight << std::endl;
+}
+
+void Canvas2D::filterPyramidResampleTest() {
+    QString sourceImagePath = "/Users/vivli/Downloads/test.jpeg";
+    QImage sourceQImage(sourceImagePath);
+
+    if (sourceQImage.isNull()) {
+        std::cerr << "Failed to load image" << std::endl;
+        return;
+    }
+
+    int origWidth = sourceQImage.width();
+    int origHeight = sourceQImage.height();
+    std::vector<RGBA> originalImage(origWidth * origHeight);
+
+    for (int y = 0; y < origHeight; ++y) {
+        for (int x = 0; x < origWidth; ++x) {
+            QRgb pixel = sourceQImage.pixel(x, y);
+            originalImage[y * origWidth + x] = {
+                static_cast<uint8_t>(qRed(pixel)),
+                static_cast<uint8_t>(qGreen(pixel)),
+                static_cast<uint8_t>(qBlue(pixel)),
+                static_cast<uint8_t>(qAlpha(pixel))
+            };
+        }
+    }
+
+    // downsampling by 2x
+    std::vector<RGBA> downsampled = originalImage;
+    int dsWidth = origWidth;
+    int dsHeight = origHeight;
+    NoiseMaker testMaker;
+    testMaker.downSample(1, 2, downsampled, dsWidth, dsHeight);
+
+    // upsampling back to original resolution
+    std::vector<RGBA> upsampled;
+    testMaker.upsample(downsampled, dsWidth, dsHeight, upsampled, origWidth, origHeight);
+
+    // displaying
+    resize(origWidth, origHeight);
+    for (int y = 0; y < origHeight; ++y) {
+        for (int x = 0; x < origWidth; ++x) {
+            int idx = y * origWidth + x;
+            if (idx < upsampled.size()) {
+                m_data[idx] = upsampled[idx];
+            }
+        }
+    }
+
+    update();
+    std::cout << "Simulated pyramid resample test (downsample + upsample)." << std::endl;
+}
 
 void Canvas2D::reconstructImage(
     const std::vector<RGBA>& sourceImage,

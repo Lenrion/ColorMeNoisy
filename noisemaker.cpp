@@ -31,8 +31,20 @@ void NoiseMaker::processImagePyramids(
         int currTexWidth = texturePyramidDims[level].first;
         int currTexHeight = texturePyramidDims[level].second;
 
-        //         updample our current result image to match current texture pyramid level
+        // upsample our current result image to match current texture pyramid level
         //if not at highest level
+        if (level != pyramidLevels - 1) {
+            std::vector<RGBA> upsampledResult;
+            upsample(currentResult, currentWidth, currentHeight, upsampledResult, currTexWidth, currTexHeight);
+            currentResult = upsampledResult;
+            currentWidth = currTexWidth;
+            currentHeight = currTexHeight;
+        } else {
+            // already at coarsest level
+            currentWidth = currTexWidth;
+            currentHeight = currTexHeight;
+        }
+
         int newWidth = currentWidth * 2; //Hardcoded to 2x because im pretty sure thats what the downsample method does rn
         //idk check and change this
         int newHeight = currentHeight * 2;
