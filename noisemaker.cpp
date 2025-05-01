@@ -19,7 +19,145 @@ void NoiseMaker::processImagePyramids(
     createImagePyramids(textureImage, textureWidth, textureHeight,
                         originalFrame, frameWidth, frameHeight, pyramidLevels);
 
+    std::vector<RGBA> currentResult = currentTargetFrame;
+    int currentWidth = currentTargetWidth;
+    int currentHeight = currentTargetHeight;
+
+    // coarsest to finest --bottom-up through the pyramid levels
+    for (int level = pyramidLevels - 1; level >= 0; level--) {
+
+        // texture at current level
+        const std::vector<RGBA>& currLevelTexture = texturePyramid[level];
+        int currTexWidth = texturePyramidDims[level].first;
+        int currTexHeight = texturePyramidDims[level].second;
+
+        //         updample our current result image to match current texture pyramid level
+        //if not at highest level
+        int newWidth = currentWidth * 2; //Hardcoded to 2x because im pretty sure thats what the downsample method does rn
+        //idk check and change this
+        int newHeight = currentHeight * 2;
+        //        upsample(...)
+        //         currentwidth = newWidth , newheight etc
+        //            std::vector<RGBA> deformedTarget = predeform()
+
+
+        std::vector<RGBA> levelResult(currentWidth * currentHeight);
+        // for each pixel
+        //do patchmatch on the predeformed target, get result, and do the mode thing
+
+        currentResult = levelResult;
+
+        //    }
+        outputImage = levelResult;
+        // should make a function that autosaves the output images on a sequence of inputs
+
+    }
 }
+
+std::vector<RGBA> NoiseMaker::predeform(
+    const std::vector<RGBA>& currentFrame, int currentWidth, int currentHeight,
+    const std::vector<RGBA>& previousResult, int previousWidth, int previousHeight,
+    const std::vector<Eigen::Vector2f>& motionVectors) {
+
+    // Deformation result
+    std::vector<RGBA> deformedTarget(currentWidth * currentHeight);
+
+    // (black with alpha = 255)
+    for (auto& pixel : deformedTarget) {
+        pixel = {0, 0, 0, 255};
+    }
+
+    // For each pixel in the current frame
+    for (int y = 0; y < currentHeight; y++) {
+        for (int x = 0; x < currentWidth; x++) {
+            int pixelIndex = y * currentWidth + x;
+
+            Eigen::Vector2f motion = Eigen::Vector2f::Zero();
+            if (!motionVectors.empty()) {
+                motion = motionVectors[pixelIndex];
+            }
+
+            float srcX = x + motion(0);
+            float srcY = y + motion(1);
+
+            if (srcX >= 0 && srcX < previousWidth && srcY >= 0 && srcY < previousHeight) {
+                RGBA color = bilinearInterpolation(srcX, srcY, previousResult, previousWidth, previousHeight);
+                deformedTarget[pixelIndex] = color;
+            } else {
+                deformedTarget[pixelIndex] = currentFrame[pixelIndex];
+            }
+        }
+    }
+
+    return deformedTarget;
+}
+
+std::vector<Eigen::Vector2f> NoiseMaker::estimateMotion(
+    const std::vector<RGBA>& currentFrame, int currentWidth, int currentHeight,
+    const std::vector<RGBA>& previousFrame, int previousWidth, int previousHeight) {
+
+    const int blockSize = 8; // Size of block for matching
+    const int searchRange = 16; // Maximum search distance
+
+    // Initialize motion vectors (default to zero motion)
+    std::vector<Eigen::Vector2f> motionVectors(currentWidth * currentHeight, Eigen::Vector2f::Zero());
+
+    for (int blockY = 0; blockY < currentHeight; blockY += blockSize) {
+        for (int blockX = 0; blockX < currentWidth; blockX += blockSize) {
+
+            int actualBlockWidth = std::min(blockSize, currentWidth - blockX);
+            int actualBlockHeight = std::min(blockSize, currentHeight - blockY);
+
+            float bestMatch = std::numeric_limits<float>::max();
+            Eigen::Vector2f bestMotion = Eigen::Vector2f::Zero();
+
+            for (int dy = -searchRange; dy <= searchRange; dy++) {
+                for (int dx = -searchRange; dx <= searchRange; dx++) {
+
+                    int refBlockX = blockX + dx;
+                    int refBlockY = blockY + dy;
+
+                    if (refBlockX < 0 || refBlockX + actualBlockWidth > previousWidth ||
+                        refBlockY < 0 || refBlockY + actualBlockHeight > previousHeight) {
+                        continue;
+                    }
+
+                    // Compute sum of absolute differences (SAD)
+                    float sad = 0.0f;
+                    for (int y = 0; y < actualBlockHeight; y++) {
+                        for (int x = 0; x < actualBlockWidth; x++) {
+                            int currIdx = (blockY + y) * currentWidth + (blockX + x);
+                            int refIdx = (refBlockY + y) * previousWidth + (refBlockX + x);
+
+                            const RGBA& currPixel = currentFrame[currIdx];
+                            const RGBA& refPixel = previousFrame[refIdx];
+
+                            // Compute pixel difference
+                            sad += std::abs(currPixel.r - refPixel.r) +
+                                   std::abs(currPixel.g - refPixel.g) +
+                                   std::abs(currPixel.b - refPixel.b);
+                        }
+                    }
+
+                    if (sad < bestMatch) {
+                        bestMatch = sad;
+                        bestMotion = Eigen::Vector2f(dx, dy);
+                    }
+                }
+            }
+
+            for (int y = 0; y < actualBlockHeight; y++) {
+                for (int x = 0; x < actualBlockWidth; x++) {
+                    int pixelIndex = (blockY + y) * currentWidth + (blockX + x);
+                    motionVectors[pixelIndex] = bestMotion;
+                }
+            }
+        }
+    }
+
+    return motionVectors;
+}
+
 
 RGBA NoiseMaker::bilinearInterpolation(float x, float y, const std::vector<RGBA>& img_data, int& img_width, int& img_height) {
     RGBA output = {0, 0, 0, 255};
