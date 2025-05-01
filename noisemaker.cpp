@@ -78,7 +78,7 @@ void NoiseMaker::processImagePyramids(
         int patchSize = 5;
         std::vector<std::pair<int, int>> nnf((currentWidth - patchSize + 1) * (currentHeight - patchSize + 1));
 
-        patchmatch(currentResult, currLevelTexture, currentWidth, currentHeight, patchSize, nnf);
+        PatchMatch::patchmatch(currentResult, currLevelTexture, currentWidth, currentHeight, patchSize, nnf);
         std::cout << "PatchMatch completed.\n";
 
         for (int i = 0; i < std::min(10, static_cast<int>(nnf.size())); ++i) {
