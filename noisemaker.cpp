@@ -3,6 +3,8 @@
 #include "rgba.h"
 #include <vector>
 #include <cmath>
+#include <iostream>
+#include "patchmatch.h"
 
 NoiseMaker::NoiseMaker()
 {
@@ -54,22 +56,35 @@ void NoiseMaker::processImagePyramids(
 
         //updample our current result image to match current texture pyramid level
         //if not at highest level
+        if (level != PYRAMID_LEVELS - 1) {
+            std::vector<RGBA> upsampledResult;
+            upsample(currentResult, currentWidth, currentHeight, upsampledResult, currTexWidth, currTexHeight);
+            currentResult = upsampledResult;
+            currentWidth = currTexWidth;
+            currentHeight = currTexHeight;
+        } else {
+            // already at coarsest level
+            currentWidth = currTexWidth;
+            currentHeight = currTexHeight;
+        }
         int newWidth = currentWidth * 2; //Hardcoded to 2x because im pretty sure thats what the downsample method does rn
-        //idk check and change this
         int newHeight = currentHeight * 2;
-        //        upsample(...)
-        //         currentwidth = newWidth , newheight etc
-        //            std::vector<RGBA> deformedTarget = predeform()
 
-
+        std::cout << "Running PatchMatch at level " << level << "...\n";
+        int patchSize = 5;
+        std::vector<std::pair<int, int>> nnf((currentWidth - patchSize + 1) * (currentHeight - patchSize + 1));
         std::vector<RGBA> levelResult(currentWidth * currentHeight);
         // for each pixel
         //do patchmatch on the predeformed target, get result, and do the mode thing
 
+        PatchMatch::patchmatch(currentResult, currLevelTexture, currentWidth, currentHeight, patchSize, nnf);
+        std::cout << "PatchMatch completed.\n";
 
+        for (int i = 0; i < std::min(10, static_cast<int>(nnf.size())); ++i) {
+            std::cout << "NNF[" << i << "]: (" << nnf[i].first << ", " << nnf[i].second << ")" << std::endl;
+        }
+        reconstructImage(currentResult, currLevelTexture, currentWidth, currentHeight, patchSize, nnf, levelResult);
         currentResult = levelResult;
-
-        //    }
         outputImage = levelResult;
         // should make a function that autosaves the output images on a sequence of inputs
 
@@ -112,6 +127,79 @@ std::vector<RGBA> NoiseMaker::predeform(
     }
 
     return deformedTarget;
+}
+
+void NoiseMaker::reconstructImage(
+    const std::vector<RGBA>& sourceImage,
+    const std::vector<RGBA>& targetImage,
+    int width, int height,
+    int patchSize,
+    const std::vector<std::pair<int, int>>& nnf,
+    std::vector<RGBA>& outputImage)
+{
+    outputImage.resize(width * height);
+
+    // unique ID per color to check frqs
+    struct ColorHash {
+        size_t operator()(const RGBA& c) const {
+            return (c.r << 16) | (c.g << 8) | c.b;
+        }
+    };
+    struct ColorEqual {
+        bool operator()(const RGBA& a, const RGBA& b) const {
+            return a.r == b.r && a.g == b.g && a.b == b.b;
+        }
+    };
+
+    std::vector<std::unordered_map<RGBA, int, ColorHash, ColorEqual>> pixelColors(width * height);
+
+    int nnfWidth = width - patchSize + 1;
+
+    // count color frequencies
+    for (int y = 0; y < height - patchSize + 1; ++y) {
+        for (int x = 0; x < width - patchSize + 1; ++x) {
+            int srcPatchIdx = y * nnfWidth + x;
+            if (srcPatchIdx >= nnf.size()) continue;
+
+            auto [targetX, targetY] = nnf[srcPatchIdx];
+
+            for (int dy = 0; dy < patchSize; ++dy) {
+                for (int dx = 0; dx < patchSize; ++dx) {
+                    int srcX = x + dx;
+                    int srcY = y + dy;
+                    int targetX = nnf[srcPatchIdx].first + dx;
+                    int targetY = nnf[srcPatchIdx].second + dy;
+
+                    if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height &&
+                        targetX >= 0 && targetX < width && targetY >= 0 && targetY < height)
+                    {
+                        int srcIdx = srcY * width + srcX;
+                        int targetIdx = targetY * width + targetX;
+                        RGBA color = targetImage[targetIdx];
+                        pixelColors[srcIdx][color]++;
+                    }
+                }
+            }
+        }
+    }
+
+    //  mode for each pixel
+    for (int i = 0; i < width * height; ++i) {
+        if (!pixelColors[i].empty()) {
+            // Find color with maximum count
+            auto mode = std::max_element(
+                pixelColors[i].begin(),
+                pixelColors[i].end(),
+                [](const auto& a, const auto& b) {
+                    return a.second < b.second;
+                }
+                );
+            outputImage[i] = mode->first;
+        } else {
+            // if no patches contributed
+            outputImage[i] = sourceImage[i];
+        }
+    }
 }
 
 std::vector<Eigen::Vector2f> NoiseMaker::estimateMotion(
