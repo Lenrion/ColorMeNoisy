@@ -89,25 +89,32 @@ void Canvas2D::filterGray() {
               << " G=" << (int)targetImage[0].g
               << " B=" << (int)targetImage[0].b << std::endl;
 
-    int patchSize = 9;
+    // TODO dont just make a new instance every time lol
+    NoiseMaker nm;
+    // TODO widths and heights might be different between animation frame and texutre image
+    // also rename from source/target to animationframe/textureimage pls :)
+    std::vector<RGBA> resultImage = nm.generateNoisyImage(sourceImage, width, height, targetImage, width, height);
 
-    // to store nearest neighbor field - maps from SOURCE patches to TARGET
-    std::vector<std::pair<int, int>> nnf((width - patchSize + 1) * (height - patchSize + 1));
 
-    std::cout << "Running PatchMatch algorithm..." << std::endl;
-    // This should map SOURCE to TARGET for style transfer
-    patchmatch(sourceImage, targetImage, width, height, patchSize, nnf);
-    std::cout << "PatchMatch completed." << std::endl;
+    // int patchSize = 9;
 
-    std::cout << "Checking NNF values..." << std::endl;
-    for (int i = 0; i < std::min(10, (int)nnf.size()); ++i) {
-        std::cout << "NNF[" << i << "]: (" << nnf[i].first << ", " << nnf[i].second << ")" << std::endl;
-    }
+    // // to store nearest neighbor field - maps from SOURCE patches to TARGET
+    // std::vector<std::pair<int, int>> nnf((width - patchSize + 1) * (height - patchSize + 1));
 
-    // Reconstruct an image based on the NNF
-    std::vector<RGBA> resultImage;
-    // but use style from targetImage via the NNF
-    reconstructImage(sourceImage, targetImage, width, height, patchSize, nnf, resultImage);
+    // std::cout << "Running PatchMatch algorithm..." << std::endl;
+    // // This should map SOURCE to TARGET for style transfer
+    // patchmatch(sourceImage, targetImage, width, height, patchSize, nnf);
+    // std::cout << "PatchMatch completed." << std::endl;
+
+    // std::cout << "Checking NNF values..." << std::endl;
+    // for (int i = 0; i < std::min(10, (int)nnf.size()); ++i) {
+    //     std::cout << "NNF[" << i << "]: (" << nnf[i].first << ", " << nnf[i].second << ")" << std::endl;
+    // }
+
+    // // Reconstruct an image based on the NNF
+    // std::vector<RGBA> resultImage;
+    // // but use style from targetImage via the NNF
+    // reconstructImage(sourceImage, targetImage, width, height, patchSize, nnf, resultImage);
 
     // Update canvas
     resize(width, height);

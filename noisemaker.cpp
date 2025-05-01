@@ -14,7 +14,7 @@ NoiseMaker::NoiseMaker()
 
 // generates one noisy image given animation frame and texture image
 // TODO loop that runs through all frames in animation
-void NoiseMaker::generateNoisyImage(std::vector<RGBA>& animationFrame, int frameWidth, int frameHeight,
+std::vector<RGBA> NoiseMaker::generateNoisyImage(std::vector<RGBA>& animationFrame, int frameWidth, int frameHeight,
                                     std::vector<RGBA>& textureImage, int textureWidth, int textureHeight) {
     // "source" refers to animationFrame and "target" refers to textureImage
     // (1) predeform the textureImage
@@ -32,6 +32,7 @@ void NoiseMaker::generateNoisyImage(std::vector<RGBA>& animationFrame, int frame
     processImagePyramids(textureImage, textureWidth, textureHeight, animationFrame, frameWidth, frameHeight, outputImage);
 
     // (7) yippee
+    return outputImage;
 }
 
 void NoiseMaker::processImagePyramids(
@@ -54,7 +55,7 @@ void NoiseMaker::processImagePyramids(
         int currTexWidth = texturePyramidDims[level].first;
         int currTexHeight = texturePyramidDims[level].second;
 
-        //updample our current result image to match current texture pyramid level
+        //upsample our current result image to match current texture pyramid level
         //if not at highest level
         if (level != PYRAMID_LEVELS - 1) {
             std::vector<RGBA> upsampledResult;
