@@ -36,31 +36,31 @@
 
 void Canvas2D::filterGray() {
     // Load source and target images
-    QString sourceImagePath = "/Users/sherry/Downloads/ocean_real.jpg";
-    QString targetImagePath = "/Users/sherry/Downloads/ocean_painting.jpg";
-    QImage sourceQImage(sourceImagePath);
-    QImage targetQImage(targetImagePath);
+    QString animationFramePath = "/Users/sherry/Downloads/ocean_real.jpg";
+    QString texturePath = "/Users/sherry/Downloads/ocean_painting.jpg";
+    QImage animQImage(animationFramePath);
+    QImage textureQImage(texturePath);
 
-    if (sourceQImage.isNull() || targetQImage.isNull()) {
+    if (animQImage.isNull() || textureQImage.isNull()) {
         std::cerr << "Failed to load one or both images" << std::endl;
         return;
     }
 
-    std::cout << "Original source dimensions: " << sourceQImage.width() << "x" << sourceQImage.height() << std::endl;
-    std::cout << "Original target dimensions: " << targetQImage.width() << "x" << targetQImage.height() << std::endl;
+    std::cout << "Original source dimensions: " << animQImage.width() << "x" << animQImage.height() << std::endl;
+    std::cout << "Original target dimensions: " << textureQImage.width() << "x" << textureQImage.height() << std::endl;
 
 
-    int width = sourceQImage.width();
-    int height = sourceQImage.height();
+    int width = animQImage.width();
+    int height = animQImage.height();
 
     // Convert QImages to RGBA vectors
-    std::vector<RGBA> sourceImage(width * height);
-    std::vector<RGBA> targetImage(targetQImage.width() * targetQImage.height());
+    std::vector<RGBA> animImage(width * height);
+    std::vector<RGBA> textureImage(textureQImage.width() * textureQImage.height());
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            QRgb sourcePixel = sourceQImage.pixel(x, y);
-            sourceImage[y * width + x] = {
+            QRgb sourcePixel = animQImage.pixel(x, y);
+            animImage[y * width + x] = {
                 static_cast<uint8_t>(qRed(sourcePixel)),
                 static_cast<uint8_t>(qGreen(sourcePixel)),
                 static_cast<uint8_t>(qBlue(sourcePixel)),
@@ -69,10 +69,10 @@ void Canvas2D::filterGray() {
         }
     }
 
-    for (int y = 0; y < targetQImage.height(); ++y) {
-        for (int x = 0; x < targetQImage.width(); ++x) {
-            QRgb targetPixel = targetQImage.pixel(x, y);
-            targetImage[y * targetQImage.width() + x] = {
+    for (int y = 0; y < textureQImage.height(); ++y) {
+        for (int x = 0; x < textureQImage.width(); ++x) {
+            QRgb targetPixel = textureQImage.pixel(x, y);
+            textureImage[y * textureQImage.width() + x] = {
                 static_cast<uint8_t>(qRed(targetPixel)),
                 static_cast<uint8_t>(qGreen(targetPixel)),
                 static_cast<uint8_t>(qBlue(targetPixel)),
@@ -82,18 +82,17 @@ void Canvas2D::filterGray() {
     }
 
 
-    std::cout << "Sample source pixel (0,0): R=" << (int)sourceImage[0].r
-              << " G=" << (int)sourceImage[0].g
-              << " B=" << (int)sourceImage[0].b << std::endl;
-    std::cout << "Sample target pixel (0,0): R=" << (int)targetImage[0].r
-              << " G=" << (int)targetImage[0].g
-              << " B=" << (int)targetImage[0].b << std::endl;
+    std::cout << "Sample source pixel (0,0): R=" << (int)animImage[0].r
+              << " G=" << (int)animImage[0].g
+              << " B=" << (int)animImage[0].b << std::endl;
+    std::cout << "Sample target pixel (0,0): R=" << (int)textureImage[0].r
+              << " G=" << (int)textureImage[0].g
+              << " B=" << (int)textureImage[0].b << std::endl;
 
     // TODO dont just make a new instance every time lol
     NoiseMaker nm;
-    // TODO widths and heights might be different between animation frame and texutre image
-    // also rename from source/target to animationframe/textureimage pls :)
-    std::vector<RGBA> resultImage = nm.generateNoisyImage(sourceImage, width, height, targetImage, width, height);
+    // TODO widths and heights might be different between animation frame and texture image
+    std::vector<RGBA> resultImage = nm.generateNoisyImage(animImage, width, height, textureImage, width, height);
 
 
     // int patchSize = 9;
@@ -131,7 +130,7 @@ void Canvas2D::filterGray() {
     }
 
     update();
-    std::cout << "PatchMatch test completed. Result displayed on canvas." << std::endl;
+    std::cout << "NoiseMaker test completed. Result displayed on canvas." << std::endl;
 }
 
 void Canvas2D::filterDownsampleTest() {
