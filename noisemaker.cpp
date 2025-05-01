@@ -10,7 +10,7 @@ NoiseMaker::NoiseMaker()
 }
 
 
-void NoiseMaker::colorMeNoisy(
+void NoiseMaker::processImagePyramids(
     const std::vector<RGBA>& textureImage, int textureWidth, int textureHeight,
     const std::vector<RGBA>& originalFrame, int frameWidth, int frameHeight,
     std::vector<RGBA>& outputImage, int numIterations, int pyramidLevels) {
