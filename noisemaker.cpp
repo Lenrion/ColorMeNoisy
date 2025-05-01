@@ -2,6 +2,7 @@
 #include "filterutils.h"
 #include "rgba.h"
 #include <vector>
+#include <cmath>
 
 NoiseMaker::NoiseMaker()
 {
@@ -9,6 +10,31 @@ NoiseMaker::NoiseMaker()
 
 }
 
+// generates one noisy image given animation frame and texture image
+// TODO loop that runs through all frames in animation
+void NoiseMaker::generateNoisyImage(std::vector<RGBA>& animationFrame, int frameWidth, int frameHeight,
+                                    std::vector<RGBA>& textureImage, int textureWidth, int textureHeight) {
+    // "source" refers to animationFrame and "target" refers to textureImage
+    // (1) predeform the textureImage
+    // TODO currently just use the original as current and previous, which will result in random deformation
+    // if we want to consider the previous frame in predeformation, need to pass in previous frame's texture iamge
+    std::vector<RGBA> deformedTexture = predeform(textureImage, textureWidth, textureHeight, textureImage, textureWidth, textureHeight, estimateMotion(textureImage, textureWidth, textureHeight, textureImage, textureWidth, textureHeight));
+
+    // (2) create image pyramids with gaussian blur of textureImage
+    createImagePyramids(textureImage, textureWidth, textureHeight, animationFrame, frameWidth, frameHeight, PYRAMID_LEVELS);
+
+    // (3) create blurred animationFrame? 2^PYRAMID_LEVELS for now to get equally blurry animation frame
+    downSample(1, int(pow(2, PYRAMID_LEVELS)), animationFrame, frameWidth, frameHeight);
+
+    // (4) loop through image pyrmaid array (start with most gaussian blurred)
+
+    // (5) for each, run patchmatch on low pass filtered animationFrame and low pass filtered textureImage
+
+    // (6) upsample the output of patchmatch on the animationFrame and repeat with next thing in texture image pyramid
+    //     (as this continues, the details get finer and finer)
+
+    // (7) yippee
+}
 
 void NoiseMaker::processImagePyramids(
     const std::vector<RGBA>& textureImage, int textureWidth, int textureHeight,

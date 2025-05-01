@@ -36,8 +36,8 @@
 
 void Canvas2D::filterGray() {
     // Load source and target images
-    QString sourceImagePath = "/Users/Lexi_Henrion/Downloads/sunset.jpg";
-    QString targetImagePath = "/Users/Lexi_Henrion/Downloads/swatch1.jpg";
+    QString sourceImagePath = "/Users/sherry/Downloads/ocean_real.jpg";
+    QString targetImagePath = "/Users/sherry/Downloads/ocean_painting.jpg";
     QImage sourceQImage(sourceImagePath);
     QImage targetQImage(targetImagePath);
 
@@ -89,7 +89,7 @@ void Canvas2D::filterGray() {
               << " G=" << (int)targetImage[0].g
               << " B=" << (int)targetImage[0].b << std::endl;
 
-    int patchSize = 5;
+    int patchSize = 9;
 
     // to store nearest neighbor field - maps from SOURCE patches to TARGET
     std::vector<std::pair<int, int>> nnf((width - patchSize + 1) * (height - patchSize + 1));
