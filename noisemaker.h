@@ -39,6 +39,14 @@ public:
         const std::vector<RGBA>& textureImage, int textureWidth, int textureHeight,
         const std::vector<RGBA>& originalFrame, int frameWidth, int frameHeight,
         std::vector<RGBA>& outputImage, int numIterations, int pyramidLevels);
+
+    void reconstructImage(
+        const std::vector<RGBA>& sourceImage,
+        const std::vector<RGBA>& targetImage,
+        int width, int height,
+        int patchSize,
+        const std::vector<std::pair<int, int>>& nnf,
+        std::vector<RGBA>& outputImage);
 };
 
 #endif // NOISEMAKER_H

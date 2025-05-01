@@ -269,6 +269,49 @@ void Canvas2D::filterPyramidResampleTest() {
     std::cout << "Simulated pyramid resample test (downsample + upsample)." << std::endl;
 }
 
+void Canvas2D::filterPyramidProcessTest() {
+    QString imagePath = "/Users/vivli/Downloads/test.jpeg";
+    QImage sourceQImage(imagePath);
+
+    if (sourceQImage.isNull()) {
+        std::cerr << "Failed to load image" << std::endl;
+        return;
+    }
+
+    int width = sourceQImage.width();
+    int height = sourceQImage.height();
+    std::vector<RGBA> imageData(width * height);
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            QRgb pixel = sourceQImage.pixel(x, y);
+            imageData[y * width + x] = {
+                static_cast<uint8_t>(qRed(pixel)),
+                static_cast<uint8_t>(qGreen(pixel)),
+                static_cast<uint8_t>(qBlue(pixel)),
+                static_cast<uint8_t>(qAlpha(pixel))
+            };
+        }
+    }
+
+    // Use the same image for both texture and target
+    std::vector<RGBA> outputImage;
+    NoiseMaker nm;
+    nm.processImagePyramids(imageData, width, height, imageData, width, height, outputImage, /*numIterations=*/1, /*pyramidLevels=*/3);
+
+    // Display output
+    resize(width, height);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            int idx = y * width + x;
+            m_data[idx] = outputImage[idx];
+        }
+    }
+
+    update();
+    std::cout << "Displayed result of pyramid downsample + upsample pipeline." << std::endl;
+}
+
 void Canvas2D::reconstructImage(
     const std::vector<RGBA>& sourceImage,
     const std::vector<RGBA>& targetImage,

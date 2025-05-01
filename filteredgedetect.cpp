@@ -9,6 +9,8 @@ void Canvas2D::filterEdgeDetect(float sensitivity) {
     // filterDownsampleTest();
     // filterPyramidResampleTest();
 
+    filterPyramidProcessTest();
+
 //    // sobel filters (separated)
 //    std::vector<float> kernelXVertical = {/
 //        1.0f, 2.0f, 1.0f
