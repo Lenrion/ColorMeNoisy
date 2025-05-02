@@ -1,12 +1,10 @@
 #include "patchmatch.h"
+#include "canvas2d.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <random>
-#include <cmath>
 #include <Eigen/Dense>
-#include <RGBA.h>
-#include "canvas2d.h"
 using namespace Eigen;
 
 //PatchMatch::PatchMatch() {
@@ -34,7 +32,7 @@ std::vector<RGBA> extractPatch(const std::vector<RGBA>& image, int x, int y, int
 }
 
 
-void Canvas2D::patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB,
+void PatchMatch::patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB,
                           int width, int height, int patchSize,
                           std::vector<std::pair<int, int>>& nnf) {
     // Initialize random number generator

@@ -31,7 +31,13 @@ public:
     void filterGray();
     void filterScale(float scaleX, float scaleY);
     void filterRotate(float angle);
-    void patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB, int width, int height, int patchSize, std::vector<std::pair<int, int>>& nnf);
+    void filterDownsampleTest();
+    void filterUpsampleTest();
+    void filterPyramidResampleTest();
+    void filterPyramidProcessTest();
+    void patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB,
+                              int width, int height, int patchSize,
+                              std::vector<std::pair<int, int>>& nnf);
     void reconstructImage(
         const std::vector<RGBA>& sourceImage,     // Source image (content)
         const std::vector<RGBA>& targetImage,     // Target image (style)
@@ -40,6 +46,7 @@ public:
         const std::vector<std::pair<int, int>>& nnf, // NNF from source to target
         std::vector<RGBA>& outputImage            // Output image
         );
+    QImage padTextureToMatchFrame(const QImage& texture, int frameWidth, int frameHeight);
     std::vector<RGBA> m_data;
 
     void mouseDown(int x, int y);
