@@ -137,54 +137,68 @@ void Canvas2D::reconstructImage(
 {
     outputImage.resize(width * height);
 
-    // unique ID per color to check frqs
+    // Define hash function and equality comparator for RGBA colors
     struct ColorHash {
         size_t operator()(const RGBA& c) const {
             return (c.r << 16) | (c.g << 8) | c.b;
         }
     };
+
     struct ColorEqual {
         bool operator()(const RGBA& a, const RGBA& b) const {
             return a.r == b.r && a.g == b.g && a.b == b.b;
         }
     };
 
+    // For each pixel in source image, store frequency of colors from overlapping patches
     std::vector<std::unordered_map<RGBA, int, ColorHash, ColorEqual>> pixelColors(width * height);
 
     int nnfWidth = width - patchSize + 1;
+    int nnfHeight = height - patchSize + 1;
 
-    // count color frequencies
-    for (int y = 0; y < height - patchSize + 1; ++y) {
-        for (int x = 0; x < width - patchSize + 1; ++x) {
-            int srcPatchIdx = y * nnfWidth + x;
+    // Process each source patch and its corresponding target patch
+    for (int sy = 0; sy < nnfHeight; ++sy) {
+        for (int sx = 0; sx < nnfWidth; ++sx) {
+            int srcPatchIdx = sy * nnfWidth + sx;
+
+            // Skip if NNF entry is out of bounds
             if (srcPatchIdx >= nnf.size()) continue;
 
-            auto [targetX, targetY] = nnf[srcPatchIdx];
+            // Get the corresponding target patch coordinates
+            int tx = nnf[srcPatchIdx].first;
+            int ty = nnf[srcPatchIdx].second;
 
+            // Process each pixel in the patch
             for (int dy = 0; dy < patchSize; ++dy) {
                 for (int dx = 0; dx < patchSize; ++dx) {
-                    int srcX = x + dx;
-                    int srcY = y + dy;
-                    int targetX = nnf[srcPatchIdx].first + dx;
-                    int targetY = nnf[srcPatchIdx].second + dy;
+                    // Source pixel coordinates
+                    int sourceX = sx + dx;
+                    int sourceY = sy + dy;
 
-                    if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height &&
+                    // Target pixel coordinates (from the matched patch)
+                    int targetX = tx + dx;
+                    int targetY = ty + dy;
+
+                    // Ensure both source and target pixels are within bounds
+                    if (sourceX >= 0 && sourceX < width && sourceY >= 0 && sourceY < height &&
                         targetX >= 0 && targetX < width && targetY >= 0 && targetY < height)
                     {
-                        int srcIdx = srcY * width + srcX;
+                        int sourceIdx = sourceY * width + sourceX;
                         int targetIdx = targetY * width + targetX;
+
+                        // Add color from target patch to the frequency map of this source pixel
                         RGBA color = targetImage[targetIdx];
-                        pixelColors[srcIdx][color]++;
+                        pixelColors[sourceIdx][color]++;
                     }
                 }
             }
         }
     }
 
-    //  mode for each pixel
+    // For each pixel in the output image, select the most frequent color
     for (int i = 0; i < width * height; ++i) {
         if (!pixelColors[i].empty()) {
-            // Find color with maximum count
+            // Find color with maximum count (the mode)
             auto mode = std::max_element(
                 pixelColors[i].begin(),
                 pixelColors[i].end(),
@@ -194,7 +208,7 @@ void Canvas2D::reconstructImage(
                 );
             outputImage[i] = mode->first;
         } else {
-            // if no patches contributed
+            // If no patches contributed to this pixel, use the original source color
             outputImage[i] = sourceImage[i];
         }
     }
