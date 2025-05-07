@@ -40,7 +40,7 @@
 
 void Canvas2D::filterGray() {
     // Load target texture image
-    QString texturePath = "/Users/Lexi_Henrion/Downloads/texswatch.png";
+    QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/texswatch.jpeg";
     QImage textureQImage(texturePath);
 
     if (textureQImage.isNull()) {
@@ -49,8 +49,8 @@ void Canvas2D::filterGray() {
     }
 
     // Input and output directories
-    QString inputDir = "/Users/Lexi_Henrion/Downloads/frameszach";
-    QString outputDir = "/Users/Lexi_Henrion/Downloads/anitestoutputs";
+    QString inputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/frameszach";
+    QString outputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/outputs";
 
     // Create output directory if it doesn't exist
     QDir dir;

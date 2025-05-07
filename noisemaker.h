@@ -4,7 +4,7 @@
 
 #include "rgba.h"
 #include <vector>
-#include <Eigen/Dense>
+#include <eigen/Dense>
 
 class NoiseMaker
 {
