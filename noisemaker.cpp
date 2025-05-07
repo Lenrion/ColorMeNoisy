@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iostream>
 #include "patchmatch.h"
+#include <random>
 
 NoiseMaker::NoiseMaker()
 {
@@ -115,6 +116,12 @@ std::vector<RGBA> NoiseMaker::predeform(
                 motion = motionVectors[pixelIndex];
             }
 
+            // attempt at making it more exaggerated
+            float exaggeration = 3.f;
+            motion *= exaggeration;
+            // float noiseAmount = 1.0f;
+            // motion += Eigen::Vector2f(randFloat(-noiseAmount, noiseAmount), randFloat(-noiseAmount, noiseAmount));
+
             float srcX = x + motion(0);
             float srcY = y + motion(1);
 
@@ -140,7 +147,7 @@ void NoiseMaker::reconstructImage(
 {
     outputImage.resize(width * height);
 
-    // unique ID per color to check frqs
+    // For counting color frequencies
     struct ColorHash {
         size_t operator()(const RGBA& c) const {
             return (c.r << 16) | (c.g << 8) | c.b;
@@ -156,26 +163,26 @@ void NoiseMaker::reconstructImage(
 
     int nnfWidth = width - patchSize + 1;
 
-    // count color frequencies
+    // Accumulate color frequencies from patches
     for (int y = 0; y < height - patchSize + 1; ++y) {
         for (int x = 0; x < width - patchSize + 1; ++x) {
             int srcPatchIdx = y * nnfWidth + x;
             if (srcPatchIdx >= nnf.size()) continue;
 
-            auto [targetX, targetY] = nnf[srcPatchIdx];
+            auto [matchX, matchY] = nnf[srcPatchIdx];
 
             for (int dy = 0; dy < patchSize; ++dy) {
                 for (int dx = 0; dx < patchSize; ++dx) {
                     int srcX = x + dx;
                     int srcY = y + dy;
-                    int targetX = nnf[srcPatchIdx].first + dx;
-                    int targetY = nnf[srcPatchIdx].second + dy;
+                    int dstX = matchX + dx;
+                    int dstY = matchY + dy;
 
                     if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height &&
-                        targetX >= 0 && targetX < width && targetY >= 0 && targetY < height)
+                        dstX >= 0 && dstX < width && dstY >= 0 && dstY < height)
                     {
                         int srcIdx = srcY * width + srcX;
-                        int targetIdx = targetY * width + targetX;
+                        int targetIdx = dstY * width + dstX;
                         RGBA color = targetImage[targetIdx];
                         pixelColors[srcIdx][color]++;
                     }
@@ -184,10 +191,9 @@ void NoiseMaker::reconstructImage(
         }
     }
 
-    //  mode for each pixel
+    // Reconstruct image using most frequent color for each pixel
     for (int i = 0; i < width * height; ++i) {
         if (!pixelColors[i].empty()) {
-            // Find color with maximum count
             auto mode = std::max_element(
                 pixelColors[i].begin(),
                 pixelColors[i].end(),
@@ -195,20 +201,21 @@ void NoiseMaker::reconstructImage(
                     return a.second < b.second;
                 }
                 );
-            outputImage[i] = mode->first;
+            outputImage[i] = {mode->first.r, mode->first.g, mode->first.b, 255}; // Ensure alpha = 255
         } else {
-            // if no patches contributed
+            // If no contributions, fall back to source image
             outputImage[i] = sourceImage[i];
         }
     }
 }
+
 
 std::vector<Eigen::Vector2f> NoiseMaker::estimateMotion(
     const std::vector<RGBA>& currentFrame, int currentWidth, int currentHeight,
     const std::vector<RGBA>& previousFrame, int previousWidth, int previousHeight) {
 
     const int blockSize = 8; // Size of block for matching
-    const int searchRange = 16; // Maximum search distance
+    const int searchRange = 8; // Maximum search distance
 
     // Initialize motion vectors (default to zero motion)
     std::vector<Eigen::Vector2f> motionVectors(currentWidth * currentHeight, Eigen::Vector2f::Zero());
