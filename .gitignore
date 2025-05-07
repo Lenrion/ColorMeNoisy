@@ -1,4 +1,5 @@
 build/
+fun_images
 **/.DS_Store
 .qtc_clangd/
 CMakeLists.txt.*
