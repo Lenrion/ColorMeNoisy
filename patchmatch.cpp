@@ -12,35 +12,37 @@ using namespace Eigen;
 
 
 // calculate the squared distance between two patches
-int patchDistance(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB,
-                  int ax, int ay, int bx, int by, int width, int patchSize)
+int patchDistance(const std::vector<RGBA>& A, const std::vector<RGBA>& B,
+                  int ax, int ay, int bx, int by, int width, int patchSize, int maxDist = INT_MAX)
 {
     int dist = 0;
     for (int dy = 0; dy < patchSize; ++dy) {
         for (int dx = 0; dx < patchSize; ++dx) {
             int idxA = (ay + dy) * width + (ax + dx);
             int idxB = (by + dy) * width + (bx + dx);
-            const auto& a = imageA[idxA];
-            const auto& b = imageB[idxB];
-            dist += (a.r - b.r) * (a.r - b.r);
-            dist += (a.g - b.g) * (a.g - b.g);
-            dist += (a.b - b.b) * (a.b - b.b);
+
+            const auto& a = A[idxA];
+            const auto& b = B[idxB];
+
+            dist += std::abs(a.r - b.r) + std::abs(a.g - b.g) + std::abs(a.b - b.b);
         }
+        if (dist > maxDist) return dist;
     }
     return dist;
 }
 
-std::vector<RGBA> extractPatch(const std::vector<RGBA>& image, int x, int y, int width, int patchSize) {
-    std::vector<RGBA> patch;
-    for (int dy = 0; dy < patchSize; ++dy) {
-        patch.insert(patch.end(), image.begin() + (y + dy) * width + x, image.begin() + (y + dy) * width + x + patchSize);
-    }
-    return patch;
-}
+
+// std::vector<RGBA> extractPatch(const std::vector<RGBA>& image, int x, int y, int width, int patchSize) {
+//     std::vector<RGBA> patch;
+//     for (int dy = 0; dy < patchSize; ++dy) {
+//         patch.insert(patch.end(), image.begin() + (y + dy) * width + x, image.begin() + (y + dy) * width + x + patchSize);
+//     }
+//     return patch;
+// }
 
 void PatchMatch::patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB,
-                int width, int height, int patchSize,
-                std::vector<std::pair<int, int>>& nnf)
+                            int width, int height, int patchSize,
+                            std::vector<std::pair<int, int>>& nnf)
 {
     const int wLimit = width - patchSize + 1;
     const int hLimit = height - patchSize + 1;
@@ -130,3 +132,4 @@ void PatchMatch::patchmatch(const std::vector<RGBA>& imageA, const std::vector<R
         }
     }
 }
+

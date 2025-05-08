@@ -72,7 +72,7 @@ void NoiseMaker::processImagePyramids(
         int newHeight = currentHeight * 2;
 
         std::cout << "Running PatchMatch at level " << level << "...\n";
-        int patchSize = 5;
+        int patchSize = 9;
         std::vector<std::pair<int, int>> nnf((currentWidth - patchSize + 1) * (currentHeight - patchSize + 1));
         std::vector<RGBA> levelResult(currentWidth * currentHeight);
         // for each pixel

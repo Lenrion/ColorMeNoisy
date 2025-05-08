@@ -12,7 +12,7 @@
 
 void Canvas2D::filterGray() {
     // Load target texture image
-    QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/bird_textures.png";
+    QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/texswatch.jpeg";
     QImage textureQImage(texturePath);
 
     if (textureQImage.isNull()) {
@@ -21,8 +21,8 @@ void Canvas2D::filterGray() {
     }
 
     // Input and output directories
-    QString inputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/framesbird";
-    QString outputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/outputs/bird";
+    QString inputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/frameszach";
+    QString outputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/outputs/5";
 
     // Create output directory if it doesn't exist
     QDir dir;
@@ -148,7 +148,7 @@ void Canvas2D::filterGray() {
 
 QImage Canvas2D::padTextureToMatchFrame(const QImage& texture, int frameWidth, int frameHeight) {
     QImage paddedTexture(frameWidth, frameHeight, QImage::Format_ARGB32);
-    paddedTexture.fill(Qt::transparent); // Fill with transparent pixels (zeros)
+    paddedTexture.fill(QColor(255, 255, 255, 0)); // fill with transparent pixels
 
     int xOffset = (frameWidth - texture.width()) / 2;
     int yOffset = (frameHeight - texture.height()) / 2;
