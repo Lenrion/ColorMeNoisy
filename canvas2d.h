@@ -35,9 +35,6 @@ public:
     void filterUpsampleTest();
     void filterPyramidResampleTest();
     void filterPyramidProcessTest();
-    void patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB,
-                              int width, int height, int patchSize,
-                              std::vector<std::pair<int, int>>& nnf);
     void reconstructImage(
         const std::vector<RGBA>& sourceImage,     // Source image (content)
         const std::vector<RGBA>& targetImage,     // Target image (style)

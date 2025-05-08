@@ -1,92 +1,101 @@
 #include "canvas2d.h"
-#include "filterutils.h"
+// #include "filterutils.h"
 #include <iostream>
+// #include "noisemaker.h"
+#include "patchmatch.h"
 
 void Canvas2D::filterRotate(float angle) {
-    float theta = angle * M_PI / 180.0; // convert to radians
+    // Load source and target images
+    QString animationFramePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/blurred_zach.jpeg";
+    QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/predeformed_subtle_high_res.png";
+    QImage animQImage(animationFramePath);
+    QImage textureQImage(texturePath);
 
-    // get center coords
-    int cx = m_width / 2;
-    int cy = m_height / 2;
+    if (animQImage.isNull() || textureQImage.isNull()) {
+        std::cerr << "Failed to load one or both images" << std::endl;
+        return;
+    }
 
-    // make new image vector
-    // width and height based on corners of the rotated image
-    int newWidth = getNewWidth(angle);
-    int newHeight = getNewHeight(angle);
-    std::vector<RGBAf> newImage(newWidth * newHeight);
+    std::cout << "Original source dimensions: " << animQImage.width() << "x" << animQImage.height() << std::endl;
+    std::cout << "Original target dimensions: " << textureQImage.width() << "x" << textureQImage.height() << std::endl;
 
-    // get center of new image
-    int cx_new = newWidth / 2;
-    int cy_new = newHeight / 2;
 
-    // loop thru pixels in new image
-    for (int row = 0; row < newHeight; row++) {
-        for (int col = 0; col < newWidth; col++) {
-            // backmap using inverse of rotation formula from lecture
-            // this is because we are starting from the new image and figuring out where in the old image we want to get
-            // the pixel from, so we are reverse-rotating it!
-            // shift row and col by center of new image to ensure rotation around center instead of (0,0) (i add it back later)
-            // round because we are looking for indices. this results in the image getting really scrungly over time,
-            // but i hope it is ok for the scope of this project :)
-            // if i had more time, i would go in and implement a way to get an average of the surrounding pixels!
-            int old_x = round(cos(-theta) * (col - cx_new) - sin(-theta) * (row - cy_new) + cx); // add center back
-            int old_y = round(sin(-theta) * (col - cx_new) + cos(-theta) * (row - cy_new) + cy);
+    int width = animQImage.width();
+    int height = animQImage.height();
 
-            // if the original coordinates are within bounds, then it's part of the original image
-            // that means you should update the new image with RGB vals from old index!
-            if (old_x >= 0 && old_x < m_width && old_y >= 0 && old_y < m_height) {
-                // get closest matching color
-                // RGBAf pixel = getClosestPixel(old_x, old_y);
-                RGBAf pixel = RGBAf::fromRGBA(m_data[posToIndex(old_x, old_y)]);
-                newImage[Canvas2D::posWidthToIndex(col, row, newWidth)] = pixel; // update new image
-            } else { // otherwise, it should be black
-                newImage[Canvas2D::posWidthToIndex(col, row, newWidth)] = RGBAf({0, 0, 0});
+    QImage paddedTextureQImage = padTextureToMatchFrame(textureQImage, width, height);
+    std::cout << "Padded texture dimensions: " << paddedTextureQImage.width() << "x" << paddedTextureQImage.height() << std::endl;
+
+
+    // Convert QImages to RGBA vectors
+    std::vector<RGBA> animImage(width * height);
+    std::vector<RGBA> textureImage(width * height);
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            QRgb sourcePixel = animQImage.pixel(x, y);
+            animImage[y * width + x] = {
+                static_cast<uint8_t>(qRed(sourcePixel)),
+                static_cast<uint8_t>(qGreen(sourcePixel)),
+                static_cast<uint8_t>(qBlue(sourcePixel)),
+                static_cast<uint8_t>(qAlpha(sourcePixel))
+            };
+
+            QRgb targetPixel = paddedTextureQImage.pixel(x, y);
+            textureImage[y * width + x] = {
+                static_cast<uint8_t>(qRed(targetPixel)),
+                static_cast<uint8_t>(qGreen(targetPixel)),
+                static_cast<uint8_t>(qBlue(targetPixel)),
+                static_cast<uint8_t>(qAlpha(targetPixel))
+            };
+        }
+    }
+
+    std::cout << "Sample source pixel (0,0): R=" << (int)animImage[0].r
+              << " G=" << (int)animImage[0].g
+              << " B=" << (int)animImage[0].b << std::endl;
+    std::cout << "Sample target pixel (0,0): R=" << (int)textureImage[0].r
+              << " G=" << (int)textureImage[0].g
+              << " B=" << (int)textureImage[0].b << std::endl;
+
+    // TODO widths and heights might be different between animation frame and texture image
+    // std::vector<RGBA> resultImage = nm.generateNoisyImage(animImage, width, height, textureImage, width, height);
+
+
+    int patchSize = 9;
+
+    // to store nearest neighbor field - maps from SOURCE patches to TARGET
+    std::vector<std::pair<int, int>> nnf((width - patchSize + 1) * (height - patchSize + 1));
+
+    std::cout << "Running PatchMatch algorithm..." << std::endl;
+    // This should map SOURCE to TARGET for style transfer
+    PatchMatch::patchmatch(animImage, textureImage, width, height, patchSize, nnf);
+    std::cout << "PatchMatch completed." << std::endl;
+
+    // std::cout << "Checking NNF values..." << std::endl;
+    // for (int i = 0; i < std::min(10, (int)nnf.size()); ++i) {
+    //     std::cout << "NNF[" << i << "]: (" << nnf[i].first << ", " << nnf[i].second << ")" << std::endl;
+    // }
+
+    // Reconstruct an image based on the NNF
+    std::vector<RGBA> resultImage;
+    // but use style from targetImage via the NNF
+    reconstructImage(animImage, textureImage, width, height, patchSize, nnf, resultImage);
+
+    // Update canvas
+    resize(width, height);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            int index = y * width + x;
+            if (index < resultImage.size()) {
+                m_data[index] = resultImage[index];
+            } else {
+                // Safeguard against out of bounds
+                m_data[index] = {255, 0, 0, 255}; // Red to indicate error
             }
         }
     }
 
-    // update actual image
-    m_width = newWidth;
-    m_height = newHeight;
-    m_data = std::vector<RGBA>(newImage.size());
-    for (int i = 0; i < newImage.size(); i++) {
-        m_data[i] = newImage[i].toRGBA();
-    }
-}
-
-int Canvas2D::getNewWidth(float angle) {
-    // get x val of each of the 4 corners after rotation
-    // use the max x val as the new width
-    // x_new = cos(theta) * (x-cx) - sin(theta) * (y-cy) + cx
-    float theta = angle * M_PI / 180.0;
-    int cx = m_width / 2;
-    int cy = m_height / 2;
-    // first corner at x = 0, y = 0
-    int new_x_1 = round(cos(theta) * (0 - cx) - sin(theta) * (0 - cy) + cx);
-    // second corner at x = m_width, y = 0
-    int new_x_2 = round(cos(theta) * (m_width - cx) - sin(theta) * (0 - cy) + cx);
-    // third corner at x = 0, y = m_height
-    int new_x_3 = round(cos(theta) * (0 - cx) - sin(theta) * (m_height - cy) + cx);
-    // fourth corner at x = m_width, y = m_height
-    int new_x_4 = round(cos(theta) * (m_width - cx) - sin(theta) * (m_height - cy) + cx);
-
-    return std::max({new_x_1, new_x_2, new_x_3, new_x_4}) - std::min({new_x_1, new_x_2, new_x_3, new_x_4});
-}
-int Canvas2D::getNewHeight(float angle) {
-    // get y val of each of the 4 corners after rotation
-    // use the max - min y val as the new height
-    // y_new = sin(theta) * (x-cx) + cos(theta) * (y-cy) + cy
-    float theta = angle * M_PI / 180.0;
-    int cx = m_width / 2;
-    int cy = m_height / 2;
-    // first corner at x = 0, y = 0
-    int new_y_1 = round(sin(theta) * (0 - cx) + cos(theta) * (0 - cy) + cy);
-    // second corner at x = m_width, y = 0
-    int new_y_2 = round(sin(theta) * (m_width - cx) + cos(theta) * (0 - cy) + cy);
-    // third corner at x = 0, y = m_height
-    int new_y_3 = round(sin(theta) * (0 - cx) + cos(theta) * (m_height - cy) + cy);
-    // fourth corner at x = m_width, y = m_height
-    int new_y_4 = round(sin(theta) * (m_width - cx) + cos(theta) * (m_height - cy) + cy);
-
-    return std::max({new_y_1, new_y_2, new_y_3, new_y_4}) - std::min({new_y_1, new_y_2, new_y_3, new_y_4});
+    update();
+    std::cout << "PatchMatch test completed. Result displayed on canvas." << std::endl;
 }

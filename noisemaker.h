@@ -9,7 +9,7 @@
 class NoiseMaker
 {
 private:
-    const int PYRAMID_LEVELS = 3;
+    const int PYRAMID_LEVELS = 2;
 public:
     NoiseMaker();
     std::vector<RGBA> generateNoisyImage(std::vector<RGBA>& animationFrame, int frameWidth, int frameHeight,

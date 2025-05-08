@@ -5,7 +5,6 @@
 #include <cmath>
 #include <iostream>
 #include "patchmatch.h"
-#include <random>
 
 NoiseMaker::NoiseMaker()
 {
@@ -82,9 +81,9 @@ void NoiseMaker::processImagePyramids(
         PatchMatch::patchmatch(currentResult, currLevelTexture, currentWidth, currentHeight, patchSize, nnf);
         std::cout << "PatchMatch completed.\n";
 
-        for (int i = 0; i < std::min(10, static_cast<int>(nnf.size())); ++i) {
-            std::cout << "NNF[" << i << "]: (" << nnf[i].first << ", " << nnf[i].second << ")" << std::endl;
-        }
+        // for (int i = 0; i < std::min(10, static_cast<int>(nnf.size())); ++i) {
+        //     std::cout << "NNF[" << i << "]: (" << nnf[i].first << ", " << nnf[i].second << ")" << std::endl;
+        // }
         reconstructImage(currentResult, currLevelTexture, currentWidth, currentHeight, patchSize, nnf, levelResult);
         currentResult = levelResult;
         outputImage = levelResult;
@@ -98,7 +97,7 @@ std::vector<RGBA> NoiseMaker::predeform(
     const std::vector<RGBA>& previousResult, int previousWidth, int previousHeight,
     const std::vector<Eigen::Vector2f>& motionVectors) {
 
-    // Deformation result
+    // deformation result
     std::vector<RGBA> deformedTarget(currentWidth * currentHeight);
 
     // (black with alpha = 255)
@@ -106,7 +105,8 @@ std::vector<RGBA> NoiseMaker::predeform(
         pixel = {0, 0, 0, 255};
     }
 
-    // For each pixel in the current frame
+    // for each pixel in the current frame
+    #pragma omp parallel for
     for (int y = 0; y < currentHeight; y++) {
         for (int x = 0; x < currentWidth; x++) {
             int pixelIndex = y * currentWidth + x;
@@ -147,7 +147,7 @@ void NoiseMaker::reconstructImage(
 {
     outputImage.resize(width * height);
 
-    // For counting color frequencies
+    // for counting color frequencies
     struct ColorHash {
         size_t operator()(const RGBA& c) const {
             return (c.r << 16) | (c.g << 8) | c.b;
@@ -163,7 +163,7 @@ void NoiseMaker::reconstructImage(
 
     int nnfWidth = width - patchSize + 1;
 
-    // Accumulate color frequencies from patches
+    // accumulate color frequencies from patches
     for (int y = 0; y < height - patchSize + 1; ++y) {
         for (int x = 0; x < width - patchSize + 1; ++x) {
             int srcPatchIdx = y * nnfWidth + x;
@@ -191,7 +191,7 @@ void NoiseMaker::reconstructImage(
         }
     }
 
-    // Reconstruct image using most frequent color for each pixel
+    // reconstruct image using most frequent color for each pixel
     for (int i = 0; i < width * height; ++i) {
         if (!pixelColors[i].empty()) {
             auto mode = std::max_element(
@@ -203,7 +203,7 @@ void NoiseMaker::reconstructImage(
                 );
             outputImage[i] = {mode->first.r, mode->first.g, mode->first.b, 255}; // Ensure alpha = 255
         } else {
-            // If no contributions, fall back to source image
+            // if no contributions, fall back to source image
             outputImage[i] = sourceImage[i];
         }
     }
@@ -214,12 +214,13 @@ std::vector<Eigen::Vector2f> NoiseMaker::estimateMotion(
     const std::vector<RGBA>& currentFrame, int currentWidth, int currentHeight,
     const std::vector<RGBA>& previousFrame, int previousWidth, int previousHeight) {
 
-    const int blockSize = 8; // Size of block for matching
-    const int searchRange = 8; // Maximum search distance
+    const int blockSize = 8; // size of block for matching
+    const int searchRange = 8; // maximum search distance
 
-    // Initialize motion vectors (default to zero motion)
+    // initialize motion vectors (default to zero motion)
     std::vector<Eigen::Vector2f> motionVectors(currentWidth * currentHeight, Eigen::Vector2f::Zero());
 
+#pragma omp parallel for collapse(2)
     for (int blockY = 0; blockY < currentHeight; blockY += blockSize) {
         for (int blockX = 0; blockX < currentWidth; blockX += blockSize) {
 
@@ -240,9 +241,10 @@ std::vector<Eigen::Vector2f> NoiseMaker::estimateMotion(
                         continue;
                     }
 
-                    // Compute sum of absolute differences (SAD)
+                    // compute sum of absolute differences (SAD)
                     float sad = 0.0f;
-                    for (int y = 0; y < actualBlockHeight; y++) {
+                    bool earlyBreak = false;
+                    for (int y = 0; y < actualBlockHeight && !earlyBreak; y++) {
                         for (int x = 0; x < actualBlockWidth; x++) {
                             int currIdx = (blockY + y) * currentWidth + (blockX + x);
                             int refIdx = (refBlockY + y) * previousWidth + (refBlockX + x);
@@ -250,10 +252,15 @@ std::vector<Eigen::Vector2f> NoiseMaker::estimateMotion(
                             const RGBA& currPixel = currentFrame[currIdx];
                             const RGBA& refPixel = previousFrame[refIdx];
 
-                            // Compute pixel difference
+                            // compute pixel difference
                             sad += std::abs(currPixel.r - refPixel.r) +
                                    std::abs(currPixel.g - refPixel.g) +
                                    std::abs(currPixel.b - refPixel.b);
+
+                            if (sad > bestMatch) {
+                                earlyBreak = true; // prune unpromising candidates
+                                break;
+                            }
                         }
                     }
 

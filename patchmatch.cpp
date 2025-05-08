@@ -1,5 +1,4 @@
 #include "patchmatch.h"
-#include "canvas2d.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -7,9 +6,9 @@
 #include <eigen/Dense>
 using namespace Eigen;
 
-//PatchMatch::PatchMatch() {
+// PatchMatch::PatchMatch() {
 
-//}
+// }
 
 
 // calculate the squared distance between two patches
@@ -40,8 +39,9 @@ std::vector<RGBA> extractPatch(const std::vector<RGBA>& image, int x, int y, int
 }
 
 void PatchMatch::patchmatch(const std::vector<RGBA>& imageA, const std::vector<RGBA>& imageB,
-                            int width, int height, int patchSize,
-                            std::vector<std::pair<int, int>>& nnf) {
+                int width, int height, int patchSize,
+                std::vector<std::pair<int, int>>& nnf)
+{
     const int wLimit = width - patchSize + 1;
     const int hLimit = height - patchSize + 1;
     nnf.resize(wLimit * hLimit);
@@ -51,18 +51,13 @@ void PatchMatch::patchmatch(const std::vector<RGBA>& imageA, const std::vector<R
     std::uniform_int_distribution<> distribX(0, wLimit - 1);
     std::uniform_int_distribution<> distribY(0, hLimit - 1);
 
-    // Initialize NNF randomly with clamping
+    // 1. Initialize NNF randomly
     for (int y = 0; y < hLimit; ++y) {
         for (int x = 0; x < wLimit; ++x) {
-            int tx = distribX(gen);
-            int ty = distribY(gen);
-            tx = std::clamp(tx, 0, wLimit - 1);
-            ty = std::clamp(ty, 0, hLimit - 1);
-            nnf[y * wLimit + x] = {tx, ty};
+            nnf[y * wLimit + x] = {distribX(gen), distribY(gen)};
         }
     }
 
-    // Iterate and refine
     const int iterations = 3;
     for (int iter = 0; iter < iterations; ++iter) {
         bool reverse = (iter % 2 == 1);
@@ -79,9 +74,6 @@ void PatchMatch::patchmatch(const std::vector<RGBA>& imageA, const std::vector<R
 
             for (int x = xStart; x != xEnd; x += xStep) {
                 auto& best_match = nnf[y * wLimit + x];
-                best_match.first  = std::clamp(best_match.first,  0, wLimit - 1);
-                best_match.second = std::clamp(best_match.second, 0, hLimit - 1);
-
                 int best_dist = patchDistance(imageA, imageB, x, y,
                                               best_match.first, best_match.second,
                                               width, patchSize);
@@ -89,27 +81,25 @@ void PatchMatch::patchmatch(const std::vector<RGBA>& imageA, const std::vector<R
                 // Propagation
                 if (!reverse) {
                     if (x > 0) {
-                        auto left = nnf[y * wLimit + (x - 1)];
-                        left.first  = std::clamp(left.first,  0, wLimit - 1);
-                        left.second = std::clamp(left.second, 0, hLimit - 1);
-
-                        int dist = patchDistance(imageA, imageB, x, y,
-                                                 left.first, left.second, width, patchSize);
-                        if (dist < best_dist) {
-                            best_match = left;
-                            best_dist = dist;
+                        const auto& left = nnf[y * wLimit + (x - 1)];
+                        if (left.first < wLimit) {
+                            int dist = patchDistance(imageA, imageB, x, y,
+                                                     left.first, left.second, width, patchSize);
+                            if (dist < best_dist) {
+                                best_match = left;
+                                best_dist = dist;
+                            }
                         }
                     }
                     if (y > 0) {
-                        auto top = nnf[(y - 1) * wLimit + x];
-                        top.first  = std::clamp(top.first,  0, wLimit - 1);
-                        top.second = std::clamp(top.second, 0, hLimit - 1);
-
-                        int dist = patchDistance(imageA, imageB, x, y,
-                                                 top.first, top.second, width, patchSize);
-                        if (dist < best_dist) {
-                            best_match = top;
-                            best_dist = dist;
+                        const auto& top = nnf[(y - 1) * wLimit + x];
+                        if (top.second < hLimit) {
+                            int dist = patchDistance(imageA, imageB, x, y,
+                                                     top.first, top.second, width, patchSize);
+                            if (dist < best_dist) {
+                                best_match = top;
+                                best_dist = dist;
+                            }
                         }
                     }
                 }
@@ -127,9 +117,6 @@ void PatchMatch::patchmatch(const std::vector<RGBA>& imageA, const std::vector<R
 
                     int rx = randX(gen);
                     int ry = randY(gen);
-
-                    rx = std::clamp(rx, 0, wLimit - 1);
-                    ry = std::clamp(ry, 0, hLimit - 1);
 
                     int dist = patchDistance(imageA, imageB, x, y, rx, ry, width, patchSize);
                     if (dist < best_dist) {
