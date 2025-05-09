@@ -10,11 +10,13 @@ class NoiseMaker
 {
 private:
     const int PYRAMID_LEVELS = 2;
+    const double DOWNSAMPLE_AMOUNT = 1.5;
+    const int PATCH_SIZE = 3;
 public:
     NoiseMaker();
     std::vector<RGBA> generateNoisyImage(std::vector<RGBA>& animationFrame, int frameWidth, int frameHeight,
                             std::vector<RGBA>& textureImage, int textureWidth, int textureHeight);
-    void downSample(int filterRadius, int scale, std::vector<RGBA>& img_data, int& img_width, int& img_height);
+    void downSample(int filterRadius, std::vector<RGBA>& img_data, int& img_width, int& img_height);
     void upsample(const std::vector<RGBA>& coarseLevel, int coarseWidth, int coarseHeight, std::vector<RGBA>& fineLevel, int fineWidth, int fineHeight);
     RGBA bilinearInterpolation(float x, float y, const std::vector<RGBA>& img_data, int& img_width, int& img_height);
     std::vector<std::vector<RGBA>> texturePyramid;

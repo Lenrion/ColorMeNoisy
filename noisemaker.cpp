@@ -68,11 +68,11 @@ void NoiseMaker::processImagePyramids(
             currentWidth = currTexWidth;
             currentHeight = currTexHeight;
         }
-        int newWidth = currentWidth * 2; //Hardcoded to 2x because im pretty sure thats what the downsample method does rn
-        int newHeight = currentHeight * 2;
+        int newWidth = currentWidth * DOWNSAMPLE_AMOUNT; //Hardcoded to 2x because im pretty sure thats what the downsample method does rn
+        int newHeight = currentHeight * DOWNSAMPLE_AMOUNT;
 
         std::cout << "Running PatchMatch at level " << level << "...\n";
-        int patchSize = 5;
+        int patchSize = PATCH_SIZE;
         std::vector<std::pair<int, int>> nnf((currentWidth - patchSize + 1) * (currentHeight - patchSize + 1));
         std::vector<RGBA> levelResult(currentWidth * currentHeight);
         // for each pixel
@@ -344,8 +344,8 @@ void NoiseMaker::upsample(const std::vector<RGBA>& coarseLevel, int coarseWidth,
     }
 }
 
-void NoiseMaker::downSample(int filterRadius, int scale, std::vector<RGBA>& img_data, int& img_width, int& img_height) {
-    scale = 2; // hardcoded to downsample to half size rn
+void NoiseMaker::downSample(int filterRadius, std::vector<RGBA>& img_data, int& img_width, int& img_height) {
+    float scale = DOWNSAMPLE_AMOUNT; // hardcoded to downsample to half size rn
     int kernelSize = 2 * filterRadius + 1;
 
     std::vector<float> kernel(kernelSize, 1.0f / kernelSize);
@@ -408,7 +408,7 @@ void NoiseMaker::createImagePyramids(
         int texHeight = texturePyramidDims[level - 1].second;
 
         // uses 2x scale factor as hardcoded
-        downSample(1, 2, downsampledTexture, texWidth, texHeight);
+        downSample(1, downsampledTexture, texWidth, texHeight);
 
         texturePyramid[level] = downsampledTexture;
         texturePyramidDims[level] = std::make_pair(texWidth, texHeight);
@@ -422,7 +422,7 @@ void NoiseMaker::createImagePyramids(
 
     // reach the coarsest level
     for (int level = 1; level < PYRAMID_LEVELS; level++) {
-        downSample(1, 2, currentTargetFrame, currentTargetWidth, currentTargetHeight);
+        downSample(1, currentTargetFrame, currentTargetWidth, currentTargetHeight);
     }
 
 }

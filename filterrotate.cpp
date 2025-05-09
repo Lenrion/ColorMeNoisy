@@ -6,8 +6,8 @@
 
 void Canvas2D::filterRotate(float angle) {
     // Load source and target images
-    QString animationFramePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/frameszach/zachcolorexperiment_1.000100.png";
-    QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/texswatch.jpeg";
+    QString animationFramePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/framesruka/ruka.0001.png";
+    QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/ruka_tex.png";
     QImage animQImage(animationFramePath);
     QImage textureQImage(texturePath);
 
@@ -62,7 +62,7 @@ void Canvas2D::filterRotate(float angle) {
     // std::vector<RGBA> resultImage = nm.generateNoisyImage(animImage, width, height, textureImage, width, height);
 
 
-    int patchSize = 5;
+    int patchSize = 3;
 
     // to store nearest neighbor field - maps from SOURCE patches to TARGET
     std::vector<std::pair<int, int>> nnf((width - patchSize + 1) * (height - patchSize + 1));

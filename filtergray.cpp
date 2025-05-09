@@ -11,7 +11,7 @@
 
 void Canvas2D::filterGray() {
     // Load target texture image
-    QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/texswatch.jpeg";
+    QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/ruka_tex.png";
     QImage textureQImage(texturePath);
 
     if (textureQImage.isNull()) {
@@ -20,8 +20,8 @@ void Canvas2D::filterGray() {
     }
 
     // Input and output directories
-    QString inputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/frameszach";
-    QString outputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/outputs";
+    QString inputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/framesruka";
+    QString outputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/outputs/ruka";
 
     // Create output directory if it doesn't exist
     QDir dir;
@@ -327,7 +327,7 @@ void Canvas2D::filterDownsampleTest() {
     int dsWidth = origWidth;
     int dsHeight = origHeight;
     NoiseMaker testMaker;
-    testMaker.downSample(1, 2, downsampled, dsWidth, dsHeight);  // 2x downsampling
+    testMaker.downSample(1, downsampled, dsWidth, dsHeight);  // 2x downsampling
 
     // stretching the downsampled image to fit original canvas size for viewing purposes
     resize(origWidth, origHeight);
@@ -419,7 +419,7 @@ void Canvas2D::filterPyramidResampleTest() {
     int dsWidth = origWidth;
     int dsHeight = origHeight;
     NoiseMaker testMaker;
-    testMaker.downSample(1, 2, downsampled, dsWidth, dsHeight);
+    testMaker.downSample(1, downsampled, dsWidth, dsHeight);
 
     // upsampling back to original resolution
     std::vector<RGBA> upsampled;
