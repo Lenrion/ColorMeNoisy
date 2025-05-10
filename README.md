@@ -25,9 +25,11 @@ We tried using our algorithm on a still image and running the image through our 
 ![](/results_gifs/eye.gif)
 
 ## Credits
-We worked on the main loop of the algorithm together as a group. Below is a breakdown of our contributions for other functions and effort
+We worked on the main loop of the algorithm together as a group. Below is a breakdown of our contributions for other functions and effort  
+
 Lexi: Image pyramid and reconstruction  
 Vivian: Bilinear interpolation used in upsample/desample  
 Apoorva: Texture deformation and slides  
 Sherry: Patchmatch and results video (in slides)  
+
 A special thanks to our professor Daniel Ritchie and TA mentor Stewart Morris for their guidance on this project and all semester!
