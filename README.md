@@ -19,9 +19,29 @@ At different Image Pyramid Levels
 Using an Input Texture Very Different fromm the Original
 ![](/results_gifs/texture_diff.gif)
 
+Note: depending on the texture used (if the texture has heavy contrast) and params, our averaging during reconstruction may have a darkening effect.
+
+| Original | Texture | Result |
+|:--------:|:-------:|:------:|
+| ![](/results_ims/nanci.png) | ![](/results_ims/stipple.png) | ![](/results_ims/nancistippled.png) |
+
+Additionally, textures with fine detail require the original frame and texture to be at a sufficient resolution for best results. Note how the output below shows good horizontal, vertical pencil strokes, but it's too pixelated to look hand drawn or see finer details like stippling properly.
+
+| Texture | Result |
+|:-------:|:------:|
+| ![](/results_ims/hatchtex.png) | ![](/results_ims/nancipencil.png) |
+
 ## Extensions
 We tried using our algorithm on a still image and running the image through our model over and over again to see how a the texture varies. We also attempted the extenion idea in the paper for local orientation control (directional textures such as hatching follow a prescribed direction instead of random, but we didn't get it working. Here are our results without orientation control:
 ![](/results_gifs/eye.gif)
+
+## Important! How to Use:
+Once you've downloaded the repo, you'll need to specify your filepaths for texture, output directory, and frames in noisesetup.cpp. Then, adjust your parameters PYRAMID_LEVELS, DOWNSAMPLE_AMOUNT, and PATCH_SIZE in noisemaker.h. You'll likely need to tweak these a few times depending on your texture, your frame resolution etc. to find the values for the best results.
+
+Now you're ready to run the program, and simply select NoiseMake! (should be selected by default), and click "Apply Filter." Your results should begin appearing in your specified output folder. You can also test single frames by uncommenting the commented-out noiseSetup function in noisesetup.cpp. It will render directly onto your UI viewport.
+
+Note: DO NOT make the texture image larger than the input frame in any dimension. The texture is padded to match the input frame, so it can be any size that fits within it.
+
 
 ## Credits
 We worked on the main loop of the algorithm together as a group. Below is a breakdown of our contributions for other functions and effort  
