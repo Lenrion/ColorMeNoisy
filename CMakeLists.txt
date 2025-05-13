@@ -40,11 +40,11 @@ add_executable(${PROJECT_NAME}
   rgba.h
   filterutils.h
   filterutils.cpp
-  filterblur.cpp
-  filteredgedetect.cpp
-  filtergray.h filtergray.cpp
-  filterscale.cpp
-  filterrotate.cpp
+
+  noisesetup.cpp
+
+
+  testpatchmatch.cpp
   noisemaker.h noisemaker.cpp
   patchmatch.h patchmatch.cpp
 

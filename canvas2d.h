@@ -27,7 +27,7 @@ public:
     // Filter TODO: implement
     void filterImage();
     void filterBlur(int blurRadius);
-    void filterEdgeDetect(float sensitivity);
+    void noiseSetup(float sensitivity);
     void filterGray();
     void filterScale(float scaleX, float scaleY);
     void filterRotate(float angle);

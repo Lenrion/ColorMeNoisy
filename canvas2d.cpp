@@ -130,13 +130,11 @@ void Canvas2D::filterImage() {
     // Filter TODO: apply the currently selected filter to the loaded image
     switch (settings.filterType) {
         case FILTER_BLUR:
-            Canvas2D::filterBlur(settings.blurRadius);
             break;
         case FILTER_EDGE_DETECT:
-            Canvas2D::filterEdgeDetect(settings.edgeDetectSensitivity);
+            Canvas2D::noiseSetup(settings.edgeDetectSensitivity);
             break;
         case FILTER_SCALE:
-            Canvas2D::filterScale(settings.scaleX, settings.scaleY);
             break;
         case FILTER_ROTATION:
             Canvas2D::filterRotate(settings.rotationAngle);

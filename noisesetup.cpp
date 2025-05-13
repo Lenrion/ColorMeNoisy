@@ -9,7 +9,7 @@
 #include <iostream>
 #include <vector>
 
-void Canvas2D::filterGray() {
+void Canvas2D::noiseSetup(float sensitivity) {
     // Load target texture image
     QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/ruka_tex.png";
     QImage textureQImage(texturePath);
@@ -144,7 +144,10 @@ void Canvas2D::filterGray() {
     std::cout << "Image processing completed. " << imageIndex << " images processed and saved to "
               << outputDir.toStdString() << std::endl;
 }
-// void Canvas2D::filterGray() {
+
+/**-------------------------FOR A SINGLE FRAME:---------------------------*/
+
+// void Canvas2D::noiseSetup(float sensitivity)  {
 //     // Load target texture image
 //     QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/texswatch.jpeg";
 //     QImage textureQImage(texturePath);
@@ -297,6 +300,7 @@ QImage Canvas2D::padTextureToMatchFrame(const QImage& texture, int frameWidth, i
 
     return paddedTexture;
 }
+
 
 void Canvas2D::filterDownsampleTest() {
     QString sourceImagePath = "/Users/vivli/Downloads/test.jpeg";
@@ -481,91 +485,4 @@ void Canvas2D::filterPyramidProcessTest() {
 
     update();
     std::cout << "Displayed result of pyramid downsample + upsample pipeline." << std::endl;
-}
-
-void Canvas2D::reconstructImage(
-    const std::vector<RGBA>& sourceImage,
-    const std::vector<RGBA>& targetImage,
-    int width, int height,
-    int patchSize,
-    const std::vector<std::pair<int, int>>& nnf,
-    std::vector<RGBA>& outputImage)
-{
-    outputImage.resize(width * height);
-
-    // Define hash function and equality comparator for RGBA colors
-    struct ColorHash {
-        size_t operator()(const RGBA& c) const {
-            return (c.r << 16) | (c.g << 8) | c.b;
-        }
-    };
-
-    struct ColorEqual {
-        bool operator()(const RGBA& a, const RGBA& b) const {
-            return a.r == b.r && a.g == b.g && a.b == b.b;
-        }
-    };
-
-    // For each pixel in source image, store frequency of colors from overlapping patches
-    std::vector<std::unordered_map<RGBA, int, ColorHash, ColorEqual>> pixelColors(width * height);
-
-    int nnfWidth = width - patchSize + 1;
-    int nnfHeight = height - patchSize + 1;
-
-    // Process each source patch and its corresponding target patch
-    for (int sy = 0; sy < nnfHeight; ++sy) {
-        for (int sx = 0; sx < nnfWidth; ++sx) {
-            int srcPatchIdx = sy * nnfWidth + sx;
-
-            // Skip if NNF entry is out of bounds
-            if (srcPatchIdx >= nnf.size()) continue;
-
-            // Get the corresponding target patch coordinates
-            int tx = nnf[srcPatchIdx].first;
-            int ty = nnf[srcPatchIdx].second;
-
-            // Process each pixel in the patch
-            for (int dy = 0; dy < patchSize; ++dy) {
-                for (int dx = 0; dx < patchSize; ++dx) {
-                    // Source pixel coordinates
-                    int sourceX = sx + dx;
-                    int sourceY = sy + dy;
-
-                    // Target pixel coordinates (from the matched patch)
-                    int targetX = tx + dx;
-                    int targetY = ty + dy;
-
-                    // Ensure both source and target pixels are within bounds
-                    if (sourceX >= 0 && sourceX < width && sourceY >= 0 && sourceY < height &&
-                        targetX >= 0 && targetX < width && targetY >= 0 && targetY < height)
-                    {
-                        int sourceIdx = sourceY * width + sourceX;
-                        int targetIdx = targetY * width + targetX;
-
-                        // Add color from target patch to the frequency map of this source pixel
-                        RGBA color = targetImage[targetIdx];
-                        pixelColors[sourceIdx][color]++;
-                    }
-                }
-            }
-        }
-    }
-
-    // For each pixel in the output image, select the most frequent color
-    for (int i = 0; i < width * height; ++i) {
-        if (!pixelColors[i].empty()) {
-            // Find color with maximum count (the mode)
-            auto mode = std::max_element(
-                pixelColors[i].begin(),
-                pixelColors[i].end(),
-                [](const auto& a, const auto& b) {
-                    return a.second < b.second;
-                }
-                );
-            outputImage[i] = mode->first;
-        } else {
-            // If no patches contributed to this pixel, use the original source color
-            outputImage[i] = sourceImage[i];
-        }
-    }
 }
