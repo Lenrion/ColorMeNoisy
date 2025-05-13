@@ -71,3 +71,9 @@
 63	1533	1747110587322925167	CMakeFiles/projects_raster.dir/noisemaker.cpp.o	98b8a4c19a911159
 63	2001	1747110587793039920	CMakeFiles/projects_raster.dir/noisesetup.cpp.o	1ba4e97c19d8efc
 2001	2220	1747110588012568740	projects_raster	c3a0e319376430f8
+12	58	1747111927312396795	projects_raster_autogen/timestamp	50e3fcb2c435da3b
+12	58	1747111927312396795	projects_raster_autogen/mocs_compilation.cpp	50e3fcb2c435da3b
+12	58	1747111927312396795	/Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/build/build-ColorMeNoisy-Qt_6_5_2_for_macOS-Debug/projects_raster_autogen/timestamp	50e3fcb2c435da3b
+12	58	1747111927312396795	/Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/build/build-ColorMeNoisy-Qt_6_5_2_for_macOS-Debug/projects_raster_autogen/mocs_compilation.cpp	50e3fcb2c435da3b
+61	1411	1747111928657742276	CMakeFiles/projects_raster.dir/mainwindow.cpp.o	8556eba7a2b965ca
+1411	1692	1747111928942334415	projects_raster	c3a0e319376430f8

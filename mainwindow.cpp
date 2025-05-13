@@ -118,9 +118,9 @@ MainWindow::MainWindow()
 //    addSpinBox(filterLayout, "radius", 1, 100, 1, settings.bilateralRadius, [this](int value){ setIntVal(settings.bilateralRadius, value); });
 
     // filter push buttons
-    addPushButton(filterLayout, "Load Image", &MainWindow::onUploadButtonClick);
+//    addPushButton(filterLayout, "Load Image", &MainWindow::onUploadButtonClick);
     addPushButton(filterLayout, "Apply Filter", &MainWindow::onFilterButtonClick);
-    addPushButton(filterLayout, "Revert Image", &MainWindow::onRevertButtonClick);
+//    addPushButton(filterLayout, "Revert Image", &MainWindow::onRevertButtonClick);
     addPushButton(filterLayout, "Save Image", &MainWindow::onSaveButtonClick);
 }
 
