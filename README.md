@@ -25,7 +25,7 @@ Note: depending on the texture used (if the texture has heavy contrast) and para
 |:--------:|:-------:|:------:|
 | ![](/results_ims/nanci.png) | ![](/results_ims/stipple.png) | ![](/results_ims/nancistippled.png) |
 
-Additionally, textures with fine detail require the original frame and texture to be at a sufficient resolution for best results. Note how the output below shows good horizontal, vertical pencil strokes, but it's too pixelated to look hand drawn or see finer details like stippling properly.
+Additionally, textures with fine detail require the original frame and texture to be at a sufficient resolution for best results. Note how the output below shows some nice horizontal, vertical pencil strokes, but it's too pixelated to look hand drawn (dilineated lines) or see finer details like stippling properly.
 
 | Texture | Result |
 |:-------:|:------:|
