@@ -20,13 +20,13 @@ Using an Input Texture Very Different fromm the Original
 ![](/results_gifs/texture_diff.gif)
 
 ## Extensions
-We tried using our algorithm on a still image and running the image through our model over and over again. Here are our results:
+We tried using our algorithm on a still image and running the image through our model over and over again to see how a the texture varies. We also attempted the extenion idea in the paper for local orientation control (directional textures such as hatching follow a prescribed direction instead of random, but we didn't get it working. Here are our results without orientation control:
 ![](/results_gifs/eye.gif)
 
 ## Credits
 We worked on the main loop of the algorithm together as a group. Below is a breakdown of our contributions for other functions and effort  
 
-Lexi: Image pyramid and reconstruction  
+Lexi: Image pyramids and reconstruction  
 Vivian: Bilinear interpolation used in upsample/desample  
 Apoorva: Texture deformation and slides  
 Sherry: Patchmatch and results video (in slides)  
