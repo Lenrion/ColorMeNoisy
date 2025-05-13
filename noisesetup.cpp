@@ -11,7 +11,7 @@
 
 void Canvas2D::noiseSetup(float sensitivity) {
     // Load target texture image
-    QString texturePath = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/ruka_tex.png";
+    QString texturePath = "/Users/Lexi_Henrion/Downloads/stipple.png";
     QImage textureQImage(texturePath);
 
     if (textureQImage.isNull()) {
@@ -20,8 +20,8 @@ void Canvas2D::noiseSetup(float sensitivity) {
     }
 
     // Input and output directories
-    QString inputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/framesruka";
-    QString outputDir = "/Users/sherry/cs2240/color-me-noisy/ColorMeNoisy/fun_images/outputs/ruka";
+    QString inputDir = "/Users/Lexi_Henrion/Downloads/nanciframes";
+    QString outputDir = "/Users/Lexi_Henrion/Downloads/nancihatchout";
 
     // Create output directory if it doesn't exist
     QDir dir;

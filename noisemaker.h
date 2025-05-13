@@ -9,9 +9,9 @@
 class NoiseMaker
 {
 private:
-    const int PYRAMID_LEVELS = 2;
-    const double DOWNSAMPLE_AMOUNT = 1.5;
-    const int PATCH_SIZE = 3;
+    const int PYRAMID_LEVELS = 4;
+    const double DOWNSAMPLE_AMOUNT = 1.2;
+    const int PATCH_SIZE = 10;
 public:
     NoiseMaker();
     std::vector<RGBA> generateNoisyImage(std::vector<RGBA>& animationFrame, int frameWidth, int frameHeight,

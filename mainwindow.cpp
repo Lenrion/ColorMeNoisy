@@ -13,7 +13,7 @@
 
 MainWindow::MainWindow()
 {
-    setWindowTitle("2D Projects: Brush and Filter");
+    setWindowTitle("LET'S GET LOUD :D");
 
     // loads in settings from last run or uses default values
     settings.loadSettingsOrDefaults();

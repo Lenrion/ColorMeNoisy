@@ -9,8 +9,8 @@
 /Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/rgba.h
 /Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/patchmatch.h
 /Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/noisemaker.cpp
-/Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/noisemaker.h
 /Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/patchmatch.cpp
+/Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/noisemaker.h
 /Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/main.cpp
 /Users/Lexi_Henrion/CS2240-Graphics/ColorMeNoisy/mainwindow.h
  mmc:Q_OBJECT
